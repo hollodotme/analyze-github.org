@@ -1,47 +1,47 @@
 {
-	"name": "hollodotme/github-org-analyzer",
-	"description": "Analyzing GitHub orgs using GitHub's GraphQL API",
-	"minimum-stability": "dev",
-	"prefer-stable": true,
-	"license": "MIT",
-	"authors": [
-		{
-			"name": "Holger Woltersdorf",
-			"email": "hw@hollo.me"
-		}
-	],
-	"require": {
-		"php": ">=7.2"
-	},
-	"autoload": {
-		"psr-4": {
-			"hollodotme\\GitHub\\OrgAnalyzer\\": "src/"
-		}
-	},
-	"autoload-dev": {
-		"psr-4": {
-			"hollodotme\\GitHub\\OrgAnalyzer\\Tests\\": "tests/"
-		}
-	},
-	"require-dev": {
-		"tm/tooly-composer-script": "~1.0",
-		"hollodotme/phpunit-testdox-markdown": "~1.0.0",
-		"roave/security-advisories": "dev-master"
-	},
-	"scripts": {
-		"post-install-cmd": "Tooly\\ScriptHandler::installPharTools",
-		"post-update-cmd": "Tooly\\ScriptHandler::installPharTools"
-	},
-	"extra": {
-		"tools": {
-			"phpunit": {
-				"url": "https://phar.phpunit.de/phpunit-7.phar",
-				"only-dev": true
-			},
-			"phpstan": {
-				"url": "https://github.com/phpstan/phpstan/releases/download/0.10.5/phpstan.phar",
-				"only-dev": true
-			}
-		}
-	}
+  "name": "hollodotme/github-org-analyzer",
+  "description": "Analyzing GitHub orgs using GitHub's GraphQL API",
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Holger Woltersdorf",
+      "email": "hw@hollo.me"
+    }
+  ],
+  "require": {
+    "php": ">=7.2"
+  },
+  "autoload": {
+    "psr-4": {
+      "hollodotme\\GitHub\\OrgAnalyzer\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "hollodotme\\GitHub\\OrgAnalyzer\\Tests\\": "tests/"
+    }
+  },
+  "require-dev": {
+    "tm/tooly-composer-script": "~1.0",
+    "hollodotme/phpunit-testdox-markdown": "~1.0.0",
+    "roave/security-advisories": "dev-master"
+  },
+  "scripts": {
+    "post-install-cmd": "Tooly\\ScriptHandler::installPharTools",
+    "post-update-cmd": "Tooly\\ScriptHandler::installPharTools"
+  },
+  "extra": {
+    "tools": {
+      "phpunit": {
+        "url": "https://phar.phpunit.de/phpunit-7.phar",
+        "only-dev": true
+      },
+      "phpstan": {
+        "url": "https://github.com/phpstan/phpstan/releases/download/0.10.5/phpstan.phar",
+        "only-dev": true
+      }
+    }
+  }
 }

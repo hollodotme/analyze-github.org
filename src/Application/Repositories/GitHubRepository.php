@@ -4,6 +4,7 @@ namespace hollodotme\GitHub\OrgAnalyzer\Application\Repositories;
 
 use hollodotme\GitHub\OrgAnalyzer\Application\Interfaces\ProvidesOrganizationInfo;
 use hollodotme\GitHub\OrgAnalyzer\Application\Repositories\GitHub\RepositoryInfo;
+use hollodotme\GitHub\OrgAnalyzer\Exceptions\RuntimeException;
 use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Adapters\GitHub\Exceptions\GitHubApiRequestFailed;
 use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Interfaces\ProvidesGitHubData;
 use Iterator;
@@ -28,6 +29,7 @@ final class GitHubRepository
 
 	/**
 	 * @throws GitHubApiRequestFailed
+	 * @throws RuntimeException
 	 * @throws \Exception
 	 * @return Iterator
 	 */
@@ -68,7 +70,13 @@ final class GitHubRepository
 			);
 
 			$query = json_encode( ['query' => $graphQuery] );
-			$data  = $this->gitHubAdapter->executeQuery( $query );
+
+			if ( false === $query )
+			{
+				throw new RuntimeException( 'Could not encode json.' );
+			}
+
+			$data = $this->gitHubAdapter->executeQuery( $query );
 
 			foreach ( $data->organization->repositories->nodes as $repositoryInfo )
 			{

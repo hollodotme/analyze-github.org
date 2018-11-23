@@ -2,3 +2,4 @@
 /vendor/
 /build/logs/
 /config/GitHub.php
+/config/Org.php

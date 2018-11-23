@@ -1,0 +1,26 @@
+version: "3.7"
+
+services:
+  php:
+    image: php:7.2-fpm
+    container_name: goa_php
+    restart: always
+    networks:
+      - goa
+    volumes:
+      - .:/var/www:cached
+
+  nginx:
+    image: nginx:latest
+    container_name: goa_nginx
+    restart: always
+    networks:
+      - goa
+    ports:
+      - 80:80
+    volumes:
+      - .:/var/www:cached
+      - ./.docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+
+networks:
+  goa:

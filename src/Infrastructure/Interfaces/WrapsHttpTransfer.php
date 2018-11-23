@@ -2,7 +2,7 @@
 
 namespace hollodotme\GitHub\OrgAnalyzer\Infrastructure\Interfaces;
 
-interface WrapsRemoteTransfer
+interface WrapsHttpTransfer
 {
 	public function send( ProvidesRequestData $request ) : ProvidesResponseData;
 }

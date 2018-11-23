@@ -6,9 +6,9 @@ use hollodotme\GitHub\OrgAnalyzer\Exceptions\RuntimeException;
 use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Adapters\Http\Exceptions\HttpConnectException;
 use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Interfaces\ProvidesRequestData;
 use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Interfaces\ProvidesResponseData;
-use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Interfaces\WrapsRemoteTransfer;
+use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Interfaces\WrapsHttpTransfer;
 
-final class HttpAdapter implements WrapsRemoteTransfer
+final class HttpAdapter implements WrapsHttpTransfer
 {
 	/** @var HttpContextOptions */
 	private $contextOptions;

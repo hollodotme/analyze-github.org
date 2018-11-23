@@ -1,7 +1,7 @@
 [![Build Status](https://travis-ci.org/hollodotme/github-org-analyzer.svg?branch=master)](https://travis-ci.org/hollodotme/github-org-analyzer)
-[![Latest Stable Version](https://poser.pugx.org/hollodotme/github-org-analyzer/v/stable)](https://packagist.org/packages/hollodotme/github-org-analyzer) 
-[![Total Downloads](https://poser.pugx.org/hollodotme/github-org-analyzer/downloads)](https://packagist.org/packages/hollodotme/github-org-analyzer) 
-[![Coverage Status](https://coveralls.io/repos/github/hollodotme/github-org-analyzer/badge.svg?branch=master)](https://coveralls.io/github/hollodotme/github-org-analyzer?branch=master)
+[![Latest Stable Version](https://poser.pugx.org/hollodotme/github-org-analyzer/v/stable)](https://packagist.org/packages/hollodotme/github-org-analyzer)  
+[![codecov](https://codecov.io/gh/hollodotme/github-org-analyzer/branch/master/graph/badge.svg)](https://codecov.io/gh/hollodotme/github-org-analyzer)
+[![phpstan enabled](https://img.shields.io/badge/phpstan-enabled-green.svg)](https://github.com/phpstan/phpstan)
 
 # GitHub\OrgAnalyzer
 
@@ -10,10 +10,6 @@
 Analyzing GitHub orgs using GitHub's GraphQL API
 
 ## Installation
-
-```bash
-composer require hollodotme/github-org-analyzer
-```
 
 ## Usage
 

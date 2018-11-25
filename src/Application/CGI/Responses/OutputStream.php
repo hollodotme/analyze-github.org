@@ -3,6 +3,7 @@
 namespace hollodotme\GitHub\OrgAnalyzer\Application\CGI\Responses;
 
 use hollodotme\GitHub\OrgAnalyzer\Exceptions\LogicException;
+use hollodotme\GitHub\OrgAnalyzer\Exceptions\RuntimeException;
 use function fclose;
 use function fflush;
 use function fwrite;
@@ -10,7 +11,7 @@ use function is_resource;
 
 final class OutputStream
 {
-	/** @var resource */
+	/** @var false|resource */
 	private $resource;
 
 	/** @var string */
@@ -18,9 +19,6 @@ final class OutputStream
 
 	/** @var string */
 	private $mode;
-
-	/** @var bool */
-	private $active = false;
 
 	public function __construct( string $target = 'php://output', string $mode = 'wb' )
 	{
@@ -37,7 +35,10 @@ final class OutputStream
 	{
 		$this->resource = fopen( $this->target, $this->mode );
 
-		$this->active = is_resource( $this->resource ) && 'stream' === get_resource_type( $this->resource );
+		if ( false === $this->resource )
+		{
+			return;
+		}
 
 		$this->guardStreamIsActive();
 
@@ -49,7 +50,7 @@ final class OutputStream
 
 	public function isActive() : bool
 	{
-		return $this->active;
+		return is_resource( $this->resource ) && 'stream' === get_resource_type( $this->resource );
 	}
 
 	/**
@@ -60,6 +61,11 @@ final class OutputStream
 	public function stream( string $data ) : void
 	{
 		$this->guardStreamIsActive();
+
+		if ( false === $this->resource )
+		{
+			return;
+		}
 
 		foreach ( explode( PHP_EOL, $data ) as $line )
 		{
@@ -86,10 +92,17 @@ final class OutputStream
 	 * @param string $filePath
 	 *
 	 * @throws LogicException
+	 * @throws RuntimeException
 	 */
 	public function streamWhileFileExists( string $filePath ) : void
 	{
 		$handle = fopen( $filePath, 'rb' );
+
+		if ( false === $handle )
+		{
+			throw new RuntimeException( 'Could not open file: ' . $filePath );
+		}
+
 		while ( $line = fgets( $handle, 1024 ) )
 		{
 			$this->stream( $line );
@@ -105,7 +118,7 @@ final class OutputStream
 				continue;
 			}
 
-			$this->stream( fread( $handle, 1024 ) );
+			$this->stream( (string)fread( $handle, 1024 ) );
 		}
 
 		fclose( $handle );
@@ -116,7 +129,7 @@ final class OutputStream
 	 */
 	private function guardStreamIsActive() : void
 	{
-		if ( !$this->active )
+		if ( !$this->isActive() )
 		{
 			throw new LogicException( 'Output stream is not active.' );
 		}
@@ -129,9 +142,10 @@ final class OutputStream
 	{
 		$this->guardStreamIsActive();
 
-		fflush( $this->resource );
-		fclose( $this->resource );
-
-		$this->active = false;
+		if ( false !== $this->resource )
+		{
+			fflush( $this->resource );
+			fclose( $this->resource );
+		}
 	}
 }

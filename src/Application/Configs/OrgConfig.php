@@ -14,11 +14,6 @@ final class OrgConfig implements ProvidesOrganizationInfo
 		$this->configData = $configData;
 	}
 
-	public static function fromConfigFile() : self
-	{
-		return new self( (array)require __DIR__ . '/../../../config/Org.php' );
-	}
-
 	public function getOrganizationName() : string
 	{
 		return (string)$this->configData['organizationName'];

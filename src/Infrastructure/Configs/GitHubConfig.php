@@ -14,11 +14,6 @@ final class GitHubConfig implements ConfiguresGitHubAdapter
 		$this->configData = $configData;
 	}
 
-	public static function fromConfigFile() : ConfiguresGitHubAdapter
-	{
-		return new self( (array)require __DIR__ . '/../../../config/GitHub.php' );
-	}
-
 	public function getApiUrl() : string
 	{
 		return (string)$this->configData['apiUrl'];

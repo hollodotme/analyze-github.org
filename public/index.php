@@ -2,27 +2,15 @@
 
 namespace hollodotme\GitHub\OrgAnalyzer;
 
-use hollodotme\GitHub\OrgAnalyzer\Application\Configs\OrgConfig;
-use hollodotme\GitHub\OrgAnalyzer\Application\Repositories\GitHubRepository;
-use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Adapters\GitHub\GitHubAdapter;
-use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Adapters\Http\HttpAdapter;
-use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Configs\GitHubConfig;
+use hollodotme\GitHub\OrgAnalyzer\Infrastructure\TemplateRenderer\TemplateRenderer;
 use Throwable;
-use function header;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-$gitHubAdapter    = new GitHubAdapter( GitHubConfig::fromConfigFile(), new HttpAdapter() );
-$gitHubRepository = new GitHubRepository( OrgConfig::fromConfigFile(), $gitHubAdapter );
-
 try
 {
-	header( 'Content-Type: text/plain; charset=utf-8', true, 200 );
-	foreach ( $gitHubRepository->getRepositoryInfos() as $repositoryInfo )
-	{
-		print_r( $repositoryInfo );
-		flush();
-	}
+	$renderer = new TemplateRenderer( [__DIR__ . '/../src/Application/Web/Templates'] );
+	echo $renderer->renderWithData( 'HomePage.phtml', [] );
 }
 catch ( Throwable $e )
 {

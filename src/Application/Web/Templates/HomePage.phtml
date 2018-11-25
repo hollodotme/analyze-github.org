@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+		  integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+	<title>GitHub Org Analyzer</title>
+	<style>
+		/* Sticky footer styles
+-------------------------------------------------- */
+		html {
+			position: relative;
+			min-height: 100%;
+		}
+
+		body {
+			/* Margin bottom by footer height */
+			margin-bottom: 60px;
+		}
+
+		.footer {
+			position: absolute;
+			bottom: 0;
+			width: 100%;
+			/* Set the fixed height of the footer here */
+			height: 60px;
+			line-height: 60px; /* Vertically center the text there */
+			background-color: #f5f5f5;
+		}
+
+		main {
+			position: absolute;
+			bottom: 70px;
+			top: 70px;
+		}
+
+		#description {
+			position: absolute;
+			left: 15px;
+			top: 0;
+			bottom: 0;
+			right: 51%;
+			background-color: #F6F6F6;
+			border-radius: 5px;
+			padding: 15px;
+		}
+
+		#eventSourceOutput {
+			position: absolute;
+			left: 51%;
+			right: 15px;
+			bottom: 0;
+			top: 0;
+
+			/* Set the fixed height of the footer here */
+			background-color: #0c0c0c;
+			border-radius: 5px;
+			color: #ffffff;
+			padding: 15px;
+			overflow-y: auto;
+			overflow-x: auto;
+			font-size: small;
+			font-family: "Courier New", monospace;
+		}
+
+		/* Custom page CSS
+		-------------------------------------------------- */
+		/* Not required for template or sticky footer method. */
+
+		body > .container {
+			padding: 60px 15px 0;
+		}
+
+		.footer > .container {
+			padding-right: 15px;
+			padding-left: 15px;
+		}
+
+		code {
+			font-size: 80%;
+		}
+	</style>
+</head>
+<body>
+<header>
+	<!-- Fixed navbar -->
+	<nav class="navbar navbar-expand-md navbar-light fixed-top bg-light" style="max-height: 50px;">
+		<a class="navbar-brand" href="#">
+			<img src="img/github-icon.png" class="img-fluid" style="max-height: 45px;" alt="GitHub">
+		</a>
+		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
+				aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+			<span class="navbar-toggler-icon"></span>
+		</button>
+		<div class="collapse navbar-collapse" id="navbarCollapse">
+			<ul class="navbar-nav mr-auto">
+				<li class="nav-item active">
+					<a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" href="#">Link</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link disabled" href="#">Disabled</a>
+				</li>
+			</ul>
+			<form class="form-inline mt-2 mt-md-0">
+				<input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+				<button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+			</form>
+		</div>
+	</nav>
+</header>
+
+<main role="main" class="container-fluid">
+	<div id="description">
+		<h1>GitHub Organization Analyzer</h1>
+		<p>
+			Enter your personal access token, which you can
+			<a href="https://github.com/settings/tokens/new" target="_blank">obtain here</a>,
+			the GitHub organization that you want to analyze and hit "ANALYZE".
+		</p>
+		<p>
+			<b>Please note:</b>
+		</p>
+		<ul>
+			<li>
+				You can analyze any public organization like e.g.
+				<a href="https://github.com/php" target="_blank">github.com/php</a>.
+			</li>
+			<li>
+				If you want to analyze a private organization your GitHub user needs to have
+				access to this organization.
+			</li>
+			<li>
+				Even though this application will not store your personal access token,
+				you should revoke it once you're done with the analysis.
+			</li>
+		</ul>
+
+		<hr>
+
+		<form id="analyzeForm" data-eventsource-url="/eventSource.php">
+			<div class="form-group">
+				<label for="personalAccessToken">Personal access token</label>
+				<input type="text" name="personalAccessToken" class="form-control" id="personalAccessToken"
+					   placeholder="Enter personal access token">
+			</div>
+			<div class="form-group">
+				<label for="organizationName">GitHub organization name</label>
+				<input type="text" name="organizationName" class="form-control" id="organizationName"
+					   placeholder="Enter organization name">
+			</div>
+			<button type="submit" class="btn btn-primary" id="analyzeBtn">ANALYZE</button>
+		</form>
+
+	</div>
+	<div id="eventSourceOutput">
+
+	</div>
+</main>
+
+<footer class="footer">
+	<div class="container">
+		<span class="text-muted">
+			This website is crafted with ❤️and PHP as an open source project, you can
+			<a href="https://github.com/hollodotme/github-org-analyzer" target="_blank">contribute on GitHub</a>.
+		</span>
+	</div>
+</footer>
+
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+		integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+		crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"
+		integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+		crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
+		integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
+		crossorigin="anonymous"></script>
+<script>
+    $(document).ready(function () {
+        const form = $('#analyzeForm');
+        const logOutput = $('#eventSourceOutput');
+        const analyzeBtn = $('#analyzeBtn');
+        form.on('submit', function (e) {
+            e.preventDefault();
+            const eventSourceUrl = form.data('eventsource-url') + '?' + form.serialize();
+            console.log(eventSourceUrl);
+            if (!!window.EventSource) {
+                logOutput.text('');
+                let source = new EventSource(eventSourceUrl);
+
+                source.addEventListener('message', function (e) {
+                    logOutput.append('<div>' + e.data + '</div>');
+                    logOutput.scrollTop(99999999);
+                }, false);
+
+                source.addEventListener('validationError', function (e) {
+                    logOutput.append('<div style="color: #ff0000;">' + e.data + '</div>');
+                    logOutput.scrollTop(99999999);
+                }, false);
+
+                source.addEventListener('beginOfStream', function () {
+                    logOutput.append("Stream started.\n");
+                }, false);
+
+                source.addEventListener('open', function () {
+                    logOutput.text('');
+                    console.log('Event Source opened.');
+                    analyzeBtn.prop('disabled', true);
+                }, false);
+
+                source.addEventListener('endOfStream', function () {
+                    source.close();
+                    logOutput.append("Stream ended.\n");
+                    logOutput.scrollTop(99999999);
+                    analyzeBtn.prop('disabled', false);
+                    console.log('Event Source closed.');
+                }, false);
+
+                source.addEventListener('error', function (e) {
+                    if (e.readyState === EventSource.CLOSED) {
+                        console.log('Event Source closed unexpectedly.');
+                        source.close();
+                        analyzeBtn.prop('disabled', false);
+                    }
+                }, false);
+            } else {
+                alert('No event source available. Please use another, modern browser!');
+            }
+        });
+    });
+</script>
+</body>
+</html>

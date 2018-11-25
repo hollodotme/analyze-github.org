@@ -80,6 +80,14 @@
 		code {
 			font-size: 80%;
 		}
+
+		.highcharts-tooltip h3 {
+			margin: 0.3em 0;
+		}
+
+		.modal-lg {
+			min-width: 80%;
+		}
 	</style>
 </head>
 <body>
@@ -155,6 +163,27 @@
 	</div>
 </main>
 
+<!-- Modal -->
+<div class="modal fade" id="chartModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+	 aria-hidden="true">
+	<div class="modal-dialog modal-lg" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="chartModalLabel">Charts</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<div id="bubbleChart" style="height: 600px; width: 100%; margin: 0 auto"></div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+
 <footer class="footer">
 	<div class="container text-center">
 		<span class="text-muted">
@@ -174,11 +203,17 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
 		integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
 		crossorigin="anonymous"></script>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/highcharts-more.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/export-data.js"></script>
 <script>
     $(document).ready(function () {
         const form = $('#analyzeForm');
         const logOutput = $('#eventSourceOutput');
         const analyzeBtn = $('#analyzeBtn');
+        let collectDataSet = false;
+        let dataSetString = '';
         form.on('submit', function (e) {
             e.preventDefault();
             const eventSourceUrl = form.data('eventsource-url') + '?' + form.serialize();
@@ -188,8 +223,32 @@
                 let source = new EventSource(eventSourceUrl);
 
                 source.addEventListener('message', function (e) {
+                    if (collectDataSet) {
+                        dataSetString += e.data;
+                        console.log('Dataset Collected!');
+                        return;
+                    }
                     logOutput.append('<div>' + e.data + '</div>');
                     logOutput.scrollTop(99999999);
+                }, false);
+
+                source.addEventListener('beginDataSet', function () {
+                    logOutput.append("DataSet started.\n");
+                    collectDataSet = true;
+                }, false);
+
+                source.addEventListener('endDataSet', function () {
+                    logOutput.append("DataSet ended.\n");
+                    collectDataSet = false;
+                    let series = JSON.parse(dataSetString);
+                    $(series).each(function (i) {
+                        $(this.data).each(function (j) {
+                            series[i].data[j].x = Date.parse(this.x);
+                        });
+                    });
+                    console.dir(series);
+                    dataSetString = '';
+                    $.drawBubbleChart(series);
                 }, false);
 
                 source.addEventListener('validationError', function (e) {
@@ -227,6 +286,62 @@
             }
         });
     });
+
+    $.drawBubbleChart = function (dataSet) {
+        const chartModal = $('#chartModal');
+        chartModal.on('show.bs.modal', function () {
+            Highcharts.chart('bubbleChart', {
+                chart: {
+                    type: 'bubble',
+                    plotBorderWidth: 1,
+                    zoomType: 'x'
+                },
+                legend: {
+                    enabled: true
+                },
+                title: {
+                    text: 'Age, size and language analysis'
+                },
+                xAxis: {
+                    gridLineWidth: 1,
+                    type: 'datetime',
+                    title: {
+                        text: 'month/year'
+                    },
+                },
+                yAxis: {
+                    type: 'logarithmic',
+                    title: {
+                        text: 'Count commits'
+                    },
+                    labels: {
+                        format: '{value}'
+                    },
+                },
+                tooltip: {
+                    useHTML: true,
+                    headerFormat: '<table>',
+                    pointFormat: '<tr><th colspan="2"><h3>{point.name}</h3></th></tr>' +
+                        '<tr><th>Created at:</th><td>{point.createdAt}</td></tr>' +
+                        '<tr><th>Disk usage:</th><td>{point.diskUsage} KB</td></tr>' +
+                        '<tr><th>Commits:</th><td>{point.countCommits}</td></tr>' +
+                        '<tr><th>Last tag:</th><td>{point.lastTag}</td></tr>',
+                    footerFormat: '</table>',
+                    followPointer: true
+                },
+                plotOptions: {
+                    series: {
+                        dataLabels: {
+                            enabled: true,
+                            format: '{point.name}'
+                        }
+                    }
+                },
+                series: dataSet
+            });
+        });
+        chartModal.modal('show');
+    };
 </script>
 </body>
 </html>

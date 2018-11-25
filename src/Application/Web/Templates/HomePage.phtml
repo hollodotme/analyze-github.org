@@ -96,19 +96,9 @@
 		<div class="collapse navbar-collapse" id="navbarCollapse">
 			<ul class="navbar-nav mr-auto">
 				<li class="nav-item active">
-					<a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
-				</li>
-				<li class="nav-item">
-					<a class="nav-link" href="#">Link</a>
-				</li>
-				<li class="nav-item">
-					<a class="nav-link disabled" href="#">Disabled</a>
+					<a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
 				</li>
 			</ul>
-			<form class="form-inline mt-2 mt-md-0">
-				<input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
-				<button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-			</form>
 		</div>
 	</nav>
 </header>
@@ -119,19 +109,19 @@
 		<p>
 			Enter your personal access token, which you can
 			<a href="https://github.com/settings/tokens/new" target="_blank">obtain here</a>,
-			the GitHub organization that you want to analyze and hit "ANALYZE".
+			the GitHub organization name and hit "ANALYZE".
 		</p>
 		<p>
 			<b>Please note:</b>
 		</p>
 		<ul>
 			<li>
-				You can analyze any public organization like e.g.
+				You can analyze any organization and their public repositories like e.g.
 				<a href="https://github.com/php" target="_blank">github.com/php</a>.
 			</li>
 			<li>
-				If you want to analyze a private organization your GitHub user needs to have
-				access to this organization.
+				If you want to analyze an organization incl. their private repositories,
+				your GitHub user needs to have access to this organization.
 			</li>
 			<li>
 				Even though this application will not store your personal access token,
@@ -146,6 +136,10 @@
 				<label for="personalAccessToken">Personal access token</label>
 				<input type="text" name="personalAccessToken" class="form-control" id="personalAccessToken"
 					   placeholder="Enter personal access token">
+				<small id="tokenHelp" class="form-text text-muted">
+					The personal access token is needed to authenticate at the
+					<a href="https://developer.github.com/v4/" target="_blank">GitHub GraphQL API</a>.
+				</small>
 			</div>
 			<div class="form-group">
 				<label for="organizationName">GitHub organization name</label>
@@ -162,9 +156,10 @@
 </main>
 
 <footer class="footer">
-	<div class="container">
+	<div class="container text-center">
 		<span class="text-muted">
-			This website is crafted with ❤️and PHP as an open source project, you can
+			This website is crafted with ❤️and
+			<a href="https://php.net" target="_blank">PHP</a> as an open source project, you can
 			<a href="https://github.com/hollodotme/github-org-analyzer" target="_blank">contribute on GitHub</a>.
 		</span>
 	</div>

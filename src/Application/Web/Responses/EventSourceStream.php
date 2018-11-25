@@ -54,6 +54,7 @@ final class EventSourceStream
 		if ( $flushBuffer )
 		{
 			fflush( $this->resource );
+			flush();
 		}
 
 		$this->streamEvent( '', self::BEGIN_OF_STREAM_EVENT );
@@ -86,6 +87,8 @@ final class EventSourceStream
 			fwrite( $this->resource, 'id: ' . ++$this->eventSequence . PHP_EOL );
 			fwrite( $this->resource, (null !== $eventName) ? ('event: ' . $eventName . PHP_EOL) : '' );
 			fwrite( $this->resource, 'data: ' . $streamData . PHP_EOL . PHP_EOL );
+			fflush( $this->resource );
+			flush();
 
 			return;
 		}
@@ -120,6 +123,7 @@ final class EventSourceStream
 		{
 			fflush( $this->resource );
 			fclose( $this->resource );
+			flush();
 		}
 	}
 }

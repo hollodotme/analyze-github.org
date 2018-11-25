@@ -45,6 +45,7 @@ final class OutputStream
 		if ( $flush )
 		{
 			fflush( $this->resource );
+			flush();
 		}
 	}
 
@@ -73,6 +74,7 @@ final class OutputStream
 		}
 
 		fflush( $this->resource );
+		flush();
 	}
 
 	/**

@@ -10,6 +10,8 @@ use hollodotme\GitHub\OrgAnalyzer\Application\Web\Responses\EventSourceStream;
 use Throwable;
 use function dirname;
 use function http_build_query;
+use function strpos;
+use function substr;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
@@ -42,9 +44,44 @@ try
 	$filePath  = dirname( __DIR__ ) . '/cgi/index.php';
 	$request   = new GetRequest( $filePath, '' );
 	$request->setCustomVar( 'QUERY_STRING', $queryVars );
+
 	$request->addPassThroughCallbacks(
 		function ( string $buffer ) use ( $eventSourceStream )
 		{
+			$beginDataSet = strpos( $buffer, '[DS]' );
+			$endDataSet   = strpos( $buffer, '[/DS]' );
+
+			if ( false !== $beginDataSet && false !== $endDataSet )
+			{
+				$eventSourceStream->streamEvent( substr( $buffer, 0, $beginDataSet + 4 ) );
+				$eventSourceStream->streamEvent( '', 'beginDataSet' );
+				$eventSourceStream->streamEvent(
+					substr( $buffer, $beginDataSet + 4, $endDataSet - ($beginDataSet + 4) )
+				);
+				$eventSourceStream->streamEvent( '', 'endDataSet' );
+				$eventSourceStream->streamEvent( substr( $buffer, $endDataSet ) );
+
+				return;
+			}
+
+			if ( false !== $beginDataSet )
+			{
+				$eventSourceStream->streamEvent( substr( $buffer, 0, $beginDataSet + 4 ) );
+				$eventSourceStream->streamEvent( '', 'beginDataSet' );
+				$eventSourceStream->streamEvent( substr( $buffer, $beginDataSet + 4 ) );
+
+				return;
+			}
+
+			if ( false !== $endDataSet )
+			{
+				$eventSourceStream->streamEvent( substr( $buffer, 0, $endDataSet ) );
+				$eventSourceStream->streamEvent( '', 'endDataSet' );
+				$eventSourceStream->streamEvent( substr( $buffer, $endDataSet ) );
+
+				return;
+			}
+
 			$eventSourceStream->streamEvent( $buffer );
 		}
 	);

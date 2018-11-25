@@ -9,6 +9,9 @@ use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Adapters\GitHub\GitHubAdapter;
 use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Adapters\Http\HttpAdapter;
 use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Configs\GitHubConfig;
 use Throwable;
+use function array_values;
+use function json_encode;
+use const JSON_UNESCAPED_SLASHES;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -35,6 +38,8 @@ try
 
 	$repositoryInfos = $gitHubRepository->getRepositoryInfos();
 
+	$series = [];
+
 	foreach ( $repositoryInfos as $repositoryInfo )
 	{
 		$outputStream->streamF(
@@ -42,11 +47,37 @@ try
 			$orgConfig->getOrganizationName(),
 			$repositoryInfo->getName()
 		);
+
+		$dateCreated = $repositoryInfo->getCreatedAt();
+		$color       = $repositoryInfo->getColor();
+
+		if ( !isset( $series[ $color ] ) )
+		{
+			$series[ $color ] = [
+				'name'  => $repositoryInfo->getPrimaryLanguage(),
+				'data'  => [],
+				'color' => $color,
+			];
+		}
+
+		$series[ $color ]['data'][] = [
+			'x'               => $dateCreated->format( 'c' ),
+			'y'               => $repositoryInfo->getCountCommits(),
+			'z'               => $repositoryInfo->getDiskUsage(),
+			'name'            => $repositoryInfo->getName(),
+			'lastTag'         => $repositoryInfo->getLastTag(),
+			'diskUsage'       => $repositoryInfo->getDiskUsage(),
+			'createdAt'       => $dateCreated->format( 'Y-m-d' ),
+			'primaryLanguage' => $repositoryInfo->getPrimaryLanguage(),
+			'countCommits'    => $repositoryInfo->getCountCommits(),
+		];
 	}
 
 	$countApiCalls = $repositoryInfos->getReturn();
 
 	$outputStream->streamF( 'GitHub API calls: %d', $countApiCalls );
+
+	$outputStream->streamF( '[DS]%s[/DS]', json_encode( array_values( $series ), JSON_UNESCAPED_SLASHES ) );
 
 	$outputStream->endStream();
 }

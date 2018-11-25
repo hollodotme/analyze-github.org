@@ -31,7 +31,7 @@ final class GitHubRepository
 	 * @throws GitHubApiRequestFailed
 	 * @throws RuntimeException
 	 * @throws \Exception
-	 * @return Iterator
+	 * @return Iterator|RepositoryInfo[]
 	 */
 	public function getRepositoryInfos() : Iterator
 	{

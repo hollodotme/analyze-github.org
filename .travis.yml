@@ -29,7 +29,7 @@ before_script:
 
 script:
   - php vendor/bin/phpunit.phar -c build/ --coverage-clover build/logs/clover.xml
-  - php vendor/bin/phpstan.phar analyze --level max src/
+  - php vendor/bin/phpstan.phar analyze --level max src/ public/ cgi/
 
 after_success:
   - travis_retry bash <(curl -s https://codecov.io/bash)

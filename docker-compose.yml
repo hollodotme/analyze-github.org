@@ -9,6 +9,9 @@ services:
       - goa
     volumes:
       - .:/var/www:cached
+      - ./.docker/php/worker.pool.conf:/usr/local/etc/php-fpm.d/worker.pool.conf
+    expose:
+      - 9100
 
   nginx:
     image: nginx:latest

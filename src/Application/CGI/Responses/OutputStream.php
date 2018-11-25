@@ -3,7 +3,6 @@
 namespace hollodotme\GitHub\OrgAnalyzer\Application\CGI\Responses;
 
 use hollodotme\GitHub\OrgAnalyzer\Exceptions\LogicException;
-use hollodotme\GitHub\OrgAnalyzer\Exceptions\RuntimeException;
 use function fclose;
 use function fflush;
 use function fwrite;
@@ -89,39 +88,14 @@ final class OutputStream
 	}
 
 	/**
-	 * @param string $filePath
+	 * @param string $format
+	 * @param mixed  ...$args
 	 *
 	 * @throws LogicException
-	 * @throws RuntimeException
 	 */
-	public function streamWhileFileExists( string $filePath ) : void
+	public function streamF( string $format, ...$args ) : void
 	{
-		$handle = fopen( $filePath, 'rb' );
-
-		if ( false === $handle )
-		{
-			throw new RuntimeException( 'Could not open file: ' . $filePath );
-		}
-
-		while ( $line = fgets( $handle, 1024 ) )
-		{
-			$this->stream( $line );
-		}
-
-		while ( file_exists( $filePath ) )
-		{
-			$read  = [$handle];
-			$write = $except = null;
-
-			if ( !stream_select( $read, $write, $except, 0, 200000 ) )
-			{
-				continue;
-			}
-
-			$this->stream( (string)fread( $handle, 1024 ) );
-		}
-
-		fclose( $handle );
+		$this->stream( sprintf( $format, ...$args ) );
 	}
 
 	/**

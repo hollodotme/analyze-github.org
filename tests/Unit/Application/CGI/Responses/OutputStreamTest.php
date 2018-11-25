@@ -57,7 +57,7 @@ final class OutputStreamTest extends TestCase
 	{
 		$stream = new OutputStream( 'php://output' );
 
-		$expectedOutput = 'UnitTestUnitTestUnitTest';
+		$expectedOutput = "Unit\nTest\nUnit\nTest\nUnitTest\n";
 
 		$this->expectOutputString( $expectedOutput );
 

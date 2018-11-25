@@ -7,6 +7,7 @@ use function fclose;
 use function fflush;
 use function fwrite;
 use function is_resource;
+use const PHP_EOL;
 
 final class OutputStream
 {
@@ -68,7 +69,7 @@ final class OutputStream
 
 		foreach ( explode( PHP_EOL, $data ) as $line )
 		{
-			fwrite( $this->resource, $line );
+			fwrite( $this->resource, $line . PHP_EOL );
 		}
 
 		fflush( $this->resource );

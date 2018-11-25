@@ -33,7 +33,9 @@ try
 	$outputStream = new OutputStream();
 	$outputStream->beginStream();
 
-	foreach ( $gitHubRepository->getRepositoryInfos() as $repositoryInfo )
+	$repositoryInfos = $gitHubRepository->getRepositoryInfos();
+
+	foreach ( $repositoryInfos as $repositoryInfo )
 	{
 		$outputStream->streamF(
 			'Fetched repository information for "%s/%s"',
@@ -41,6 +43,10 @@ try
 			$repositoryInfo->getName()
 		);
 	}
+
+	$countApiCalls = $repositoryInfos->getReturn();
+
+	$outputStream->streamF( 'GitHub API calls: %d', $countApiCalls );
 
 	$outputStream->endStream();
 }

@@ -2,12 +2,12 @@
 
 namespace hollodotme\GitHub\OrgAnalyzer\Application\Repositories;
 
+use Generator;
 use hollodotme\GitHub\OrgAnalyzer\Application\Interfaces\ProvidesOrganizationInfo;
 use hollodotme\GitHub\OrgAnalyzer\Application\Repositories\GitHub\RepositoryInfo;
 use hollodotme\GitHub\OrgAnalyzer\Exceptions\RuntimeException;
 use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Adapters\GitHub\Exceptions\GitHubApiRequestFailed;
 use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Interfaces\ProvidesGitHubData;
-use Iterator;
 
 final class GitHubRepository
 {
@@ -31,9 +31,9 @@ final class GitHubRepository
 	 * @throws GitHubApiRequestFailed
 	 * @throws RuntimeException
 	 * @throws \Exception
-	 * @return Iterator|RepositoryInfo[]
+	 * @return Generator|RepositoryInfo[]
 	 */
-	public function getRepositoryInfos() : Iterator
+	public function getRepositoryInfos() : Generator
 	{
 		$queryTemplate = '
 			{
@@ -59,8 +59,8 @@ final class GitHubRepository
 			}
 		';
 
-		$endCursor = '';
-
+		$endCursor     = '';
+		$countApiCalls = 0;
 		do
 		{
 			$graphQuery = sprintf(
@@ -84,7 +84,12 @@ final class GitHubRepository
 			}
 
 			$endCursor = $data->organization->repositories->pageInfo->endCursor;
+
+			$countApiCalls++;
 		}
 		while ( $data->organization->repositories->pageInfo->hasNextPage );
+
+		/** @noinspection SuspiciousReturnInspection */
+		return $countApiCalls;
 	}
 }

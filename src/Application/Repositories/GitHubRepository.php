@@ -49,10 +49,23 @@ final class GitHubRepository
 			            name
 			          }
 			        }
+			        ref(qualifiedName: "master") {
+			          target {
+			            ... on Commit {
+			              history(since: "2010-01-01T00:00:00") {
+			                totalCount
+			              }
+			            }
+			          }
+			        }
 			        id
 			        name
 			        diskUsage
 			        createdAt
+			        primaryLanguage {
+			          name
+			          color
+			        }
 			      }
 			    }
 			  }

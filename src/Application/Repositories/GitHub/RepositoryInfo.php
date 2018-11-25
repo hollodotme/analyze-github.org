@@ -23,6 +23,15 @@ final class RepositoryInfo
 	/** @var DateTimeInterface */
 	private $createdAt;
 
+	/** @var string */
+	private $primaryLanguage;
+
+	/** @var string */
+	private $color;
+
+	/** @var int */
+	private $countCommits;
+
 	/**
 	 * @param stdClass $jsonObject
 	 *
@@ -31,12 +40,15 @@ final class RepositoryInfo
 	 */
 	public static function fromJsonObject( stdClass $jsonObject ) : self
 	{
-		$info            = new self();
-		$info->id        = $jsonObject->id;
-		$info->name      = $jsonObject->name;
-		$info->createdAt = new DateTimeImmutable( $jsonObject->createdAt );
-		$info->diskUsage = $jsonObject->diskUsage;
-		$info->lastTag   = $jsonObject->refs->nodes ? $jsonObject->refs->nodes[0]->name : 'N/A';
+		$info                  = new self();
+		$info->id              = $jsonObject->id;
+		$info->name            = $jsonObject->name;
+		$info->createdAt       = new DateTimeImmutable( $jsonObject->createdAt );
+		$info->diskUsage       = (int)$jsonObject->diskUsage;
+		$info->lastTag         = $jsonObject->refs->nodes ? $jsonObject->refs->nodes[0]->name : 'N/A';
+		$info->primaryLanguage = $jsonObject->primaryLanguage->name ?? 'N/A';
+		$info->color           = $jsonObject->primaryLanguage->color ?? '#ff0000';
+		$info->countCommits    = (int)$jsonObject->ref->target->history->totalCount;
 
 		return $info;
 	}
@@ -64,5 +76,20 @@ final class RepositoryInfo
 	public function getCreatedAt() : DateTimeInterface
 	{
 		return $this->createdAt;
+	}
+
+	public function getPrimaryLanguage() : string
+	{
+		return $this->primaryLanguage;
+	}
+
+	public function getColor() : string
+	{
+		return $this->color;
+	}
+
+	public function getCountCommits() : int
+	{
+		return $this->countCommits;
 	}
 }

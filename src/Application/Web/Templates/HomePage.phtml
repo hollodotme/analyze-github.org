@@ -157,6 +157,11 @@
 			<button type="submit" class="btn btn-primary" id="analyzeBtn">ANALYZE</button>
 		</form>
 
+		<div class="text-center" id="waitImage" style="display: none;">
+			<img src="img/octocat-calculating.gif" class="img-fluid" alt="octocat calculating"
+				 style="max-height: 200px;">
+		</div>
+
 	</div>
 	<div id="eventSourceOutput">
 
@@ -212,6 +217,7 @@
         const form = $('#analyzeForm');
         const logOutput = $('#eventSourceOutput');
         const analyzeBtn = $('#analyzeBtn');
+        const waitImage = $('#waitImage');
         let collectDataSet = false;
         let dataSetString = '';
         form.on('submit', function (e) {
@@ -228,6 +234,12 @@
                         console.log('Dataset Collected!');
                         return;
                     }
+
+                    // No output when only keeping alive
+                    if (e.data === '[KEEPALIVE]') {
+                        return;
+                    }
+
                     logOutput.append('<div>' + e.data + '</div>');
                     logOutput.scrollTop(99999999);
                 }, false);
@@ -264,6 +276,7 @@
                     logOutput.text('');
                     console.log('Event Source opened.');
                     analyzeBtn.prop('disabled', true);
+                    waitImage.show();
                 }, false);
 
                 source.addEventListener('endOfStream', function () {
@@ -271,6 +284,7 @@
                     logOutput.append("Stream ended.\n");
                     logOutput.scrollTop(99999999);
                     analyzeBtn.prop('disabled', false);
+                    waitImage.hide();
                     console.log('Event Source closed.');
                 }, false);
 
@@ -279,6 +293,7 @@
                         console.log('Event Source closed unexpectedly.');
                         source.close();
                         analyzeBtn.prop('disabled', false);
+                        waitImage.hide();
                     }
                 }, false);
             } else {

@@ -8,6 +8,7 @@ use function fflush;
 use function fwrite;
 use function get_resource_type;
 use function is_resource;
+use const PHP_EOL;
 
 final class EventSourceStream
 {
@@ -40,6 +41,8 @@ final class EventSourceStream
 	 */
 	public function beginStream( bool $flushBuffer = true ) : void
 	{
+		header( 'X-Accel-Buffering: no;' );
+		header( 'Cache-Control: no-cache;' );
 		header( 'Content-Type: text/event-stream; charset=utf-8' );
 
 		$this->resource = fopen( $this->target, $this->mode );
@@ -82,10 +85,11 @@ final class EventSourceStream
 
 		$streamData = $data;
 
+		fwrite( $this->resource, 'id: ' . ++$this->eventSequence . PHP_EOL );
+		fwrite( $this->resource, (null !== $eventName) ? ('event: ' . $eventName . PHP_EOL) : '' );
+
 		if ( false === strpos( $streamData, PHP_EOL ) )
 		{
-			fwrite( $this->resource, 'id: ' . ++$this->eventSequence . PHP_EOL );
-			fwrite( $this->resource, (null !== $eventName) ? ('event: ' . $eventName . PHP_EOL) : '' );
 			fwrite( $this->resource, 'data: ' . $streamData . PHP_EOL . PHP_EOL );
 			fflush( $this->resource );
 			flush();
@@ -95,8 +99,10 @@ final class EventSourceStream
 
 		foreach ( explode( PHP_EOL, $streamData ) as $line )
 		{
-			$this->streamEvent( $line, $eventName );
+			fwrite( $this->resource, 'data: ' . $line . PHP_EOL );
 		}
+
+		fwrite( $this->resource, PHP_EOL );
 	}
 
 	/**

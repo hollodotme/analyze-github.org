@@ -21,7 +21,14 @@ final class EventSourceStreamTest extends TestCase
 		$stream->beginStream( false );
 
 		/** @noinspection ForgottenDebugOutputInspection */
-		$this->assertArraySubset( ['Content-Type: text/event-stream; charset=utf-8'], xdebug_get_headers() );
+		$this->assertEquals(
+			[
+				'X-Accel-Buffering: no;',
+				'Cache-Control: no-cache;',
+				'Content-Type: text/event-stream; charset=utf-8',
+			],
+			xdebug_get_headers()
+		);
 		$this->expectOutputString( "id: 1\nevent: beginOfStream\ndata: \n\n" );
 	}
 
@@ -60,11 +67,13 @@ final class EventSourceStreamTest extends TestCase
 		$expectedOutput = "id: 1\nevent: beginOfStream\ndata: \n\n";
 		$expectedOutput .= "id: 2\ndata: Unit\n\n";
 		$expectedOutput .= "id: 3\nevent: testEvent\ndata: Test\n\n";
-		$expectedOutput .= "id: 4\nevent: endOfStream\ndata: \n\n";
+		$expectedOutput .= "id: 4\nevent: multiline\ndata: Test\ndata: Unit\n\n";
+		$expectedOutput .= "id: 5\nevent: endOfStream\ndata: \n\n";
 
 		$stream->beginStream( false );
 		$stream->streamEvent( 'Unit' );
 		$stream->streamEvent( 'Test', 'testEvent' );
+		$stream->streamEvent( "Test\nUnit", 'multiline' );
 		$stream->endStream();
 
 		$this->expectOutputString( $expectedOutput );

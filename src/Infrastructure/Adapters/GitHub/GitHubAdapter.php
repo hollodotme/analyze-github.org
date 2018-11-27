@@ -8,6 +8,7 @@ use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Interfaces\ConfiguresGitHubAdap
 use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Interfaces\ProvidesGitHubData;
 use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Interfaces\WrapsHttpTransfer;
 use stdClass;
+use function is_array;
 
 final class GitHubAdapter implements ProvidesGitHubData
 {
@@ -45,6 +46,13 @@ final class GitHubAdapter implements ProvidesGitHubData
 
 		$result = $response->getBody();
 
-		return json_decode( $result )->data;
+		$jsonResult = json_decode( $result );
+
+		if ( $jsonResult->data === null && is_array( $jsonResult->errors ) )
+		{
+			throw new GitHubApiRequestFailed( 'GitHub API request failed: ' . $jsonResult->errors[0]->message );
+		}
+
+		return $jsonResult->data;
 	}
 }

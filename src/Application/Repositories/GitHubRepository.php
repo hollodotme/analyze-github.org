@@ -4,6 +4,7 @@ namespace hollodotme\GitHub\OrgAnalyzer\Application\Repositories;
 
 use Generator;
 use hollodotme\GitHub\OrgAnalyzer\Application\Interfaces\ProvidesOrganizationInfo;
+use hollodotme\GitHub\OrgAnalyzer\Application\Repositories\GitHub\CommitHistoryItem;
 use hollodotme\GitHub\OrgAnalyzer\Application\Repositories\GitHub\RepositoryInfo;
 use hollodotme\GitHub\OrgAnalyzer\Exceptions\RuntimeException;
 use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Adapters\GitHub\Exceptions\GitHubApiRequestFailed;
@@ -104,5 +105,80 @@ final class GitHubRepository
 
 		/** @noinspection SuspiciousReturnInspection */
 		return $countApiCalls;
+	}
+
+	/**
+	 * @param string $repository
+	 * @param int    $apiCalls
+	 *
+	 * @throws GitHubApiRequestFailed
+	 * @throws RuntimeException
+	 * @throws \Exception
+	 * @return CommitHistoryItem
+	 */
+	public function getFirstCommitDate( string $repository, int &$apiCalls ) : CommitHistoryItem
+	{
+		$queryTemplate = '
+			{ 
+			  repository(owner: "%s", name: "%s") {
+			    ref(qualifiedName: "master") {
+			      target {
+			        ... on Commit {
+			          history(first: 100%s) {
+			            pageInfo {
+			              endCursor
+			              hasNextPage
+			            }
+			            nodes {
+			              commitUrl
+			              committedDate
+			            }
+			          }
+			        }
+			      }
+			    }
+			  }
+			}
+		';
+
+		$endCursor   = '';
+		$apiCalls    = 0;
+		$firstCommit = null;
+
+		do
+		{
+			$graphQuery = sprintf(
+				$queryTemplate,
+				$this->orgConfig->getOrganizationName(),
+				$repository,
+				'' !== $endCursor ? ", after: \"{$endCursor}\"" : ''
+			);
+
+			$query = json_encode( ['query' => $graphQuery] );
+
+			if ( false === $query )
+			{
+				throw new RuntimeException( 'Could not encode json.' );
+			}
+
+			$data = $this->gitHubAdapter->executeQuery( $query );
+
+			$nodes      = (array)$data->repository->ref->target->history->nodes;
+			$jsonObject = end( $nodes );
+
+			if ( false === $jsonObject )
+			{
+				throw new RuntimeException( 'Could not get commit nodes.' );
+			}
+
+			$firstCommit = CommitHistoryItem::fromJsonObject( $jsonObject );
+
+			$endCursor = $data->repository->ref->target->history->pageInfo->endCursor;
+
+			$apiCalls++;
+		}
+		while ( $data->repository->ref->target->history->pageInfo->hasNextPage );
+
+		return $firstCommit;
 	}
 }

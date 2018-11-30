@@ -51,6 +51,7 @@ final class OutputStreamTest extends TestCase
 	}
 
 	/**
+	 * @runInSeparateProcess
 	 * @throws LogicException
 	 */
 	public function testCanStreamOutput() : void

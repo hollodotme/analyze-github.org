@@ -7,6 +7,9 @@ use function fclose;
 use function fflush;
 use function fwrite;
 use function is_resource;
+use function ob_end_clean;
+use function ob_end_flush;
+use function ob_implicit_flush;
 use const PHP_EOL;
 
 final class OutputStream
@@ -45,6 +48,9 @@ final class OutputStream
 		if ( $flush )
 		{
 			fflush( $this->resource );
+			@ob_end_flush();
+			@ob_end_clean();
+			@ob_implicit_flush( 1 );
 			flush();
 		}
 	}
@@ -123,6 +129,8 @@ final class OutputStream
 		{
 			fflush( $this->resource );
 			fclose( $this->resource );
+			flush();
+			@ob_implicit_flush( 0 );
 		}
 	}
 }

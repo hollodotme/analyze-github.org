@@ -57,6 +57,9 @@ final class EventSourceStream
 		if ( $flushBuffer )
 		{
 			fflush( $this->resource );
+			@ob_end_flush();
+			@ob_end_clean();
+			@ob_implicit_flush( 1 );
 			flush();
 		}
 
@@ -130,6 +133,7 @@ final class EventSourceStream
 			fflush( $this->resource );
 			fclose( $this->resource );
 			flush();
+			@ob_implicit_flush( 0 );
 		}
 	}
 }

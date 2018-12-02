@@ -48,13 +48,14 @@ $(document).ready(function () {
                         return response.json();
                     })
                     .then(function (series) {
+                        let countRepositories = 0;
                         $(series).each(function (i) {
                             $(this.data).each(function (j) {
+                                countRepositories++;
                                 series[i].data[j].x = Date.parse(this.x);
                             });
                         });
-                        console.dir(series);
-                        $.drawBubbleChart(series);
+                        $.drawBubbleChart(series, countRepositories);
                     })
                     .catch(error => console.error('Error:', error));
             }, false);
@@ -100,7 +101,7 @@ $(document).ready(function () {
     });
 });
 
-$.drawBubbleChart = function (dataSet) {
+$.drawBubbleChart = function (dataSet, countRepositories) {
     const chartModal = $('#chartModal');
     chartModal.on('show.bs.modal', function () {
         Highcharts.chart('bubbleChart', {
@@ -113,7 +114,7 @@ $.drawBubbleChart = function (dataSet) {
                 enabled: true
             },
             title: {
-                text: 'Age, commit count, disk size and language analysis'
+                text: 'Age, commit count, disk size and language analysis of ' + countRepositories + ' repositories'
             },
             xAxis: {
                 gridLineWidth: 1,

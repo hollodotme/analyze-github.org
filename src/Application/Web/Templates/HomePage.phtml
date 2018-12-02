@@ -35,7 +35,8 @@
 		<p>
 			Enter your personal access token, which you can
 			<a href="https://github.com/settings/tokens/new" target="_blank">obtain here</a>,
-			the GitHub organization name and hit "ANALYZE".
+			the GitHub organization name and hit "ANALYZE". As a result a modal opens showing you a bubble chart
+			for the github organization.
 		</p>
 		<p>
 			<b>Please note:</b>
@@ -69,8 +70,13 @@
 			</div>
 			<div class="form-group">
 				<label for="organizationName">GitHub organization name</label>
-				<input type="text" name="organizationName" class="form-control" id="organizationName"
-					   placeholder="Enter organization name">
+				<div class="input-group mb-3">
+					<div class="input-group-prepend">
+						<span class="input-group-text">github.com/</span>
+					</div>
+					<input type="text" name="organizationName" class="form-control" id="organizationName"
+						   placeholder="Enter organization name">
+				</div>
 			</div>
 			<div class="row align-items-center">
 				<div class="col-2">

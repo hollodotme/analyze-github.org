@@ -9,6 +9,11 @@ use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Adapters\GitHub\GitHubAdapter;
 use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Adapters\Http\HttpAdapter;
 use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Configs\GitHubConfig;
 use Throwable;
+use function error_reporting;
+use function ini_set;
+
+error_reporting( E_ALL );
+ini_set( 'display_errors', 'On' );
 
 require __DIR__ . '/../vendor/autoload.php';
 

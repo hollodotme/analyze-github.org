@@ -15,11 +15,17 @@ use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Adapters\Http\HttpAdapter;
 use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Configs\GitHubConfig;
 use Throwable;
 use function array_values;
+use function dirname;
+use function error_reporting;
+use function file_put_contents;
 use function http_build_query;
+use function ini_set;
 use function json_encode;
 use function random_int;
 use function usleep;
-use const JSON_UNESCAPED_SLASHES;
+
+error_reporting( E_ALL );
+ini_set( 'display_errors', 'On' );
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -92,7 +98,7 @@ try
 
 	$countApiCalls = $repositoryInfos->getReturn();
 
-	$outputStream->streamF( 'GitHub API calls so far: %d', $countApiCalls );
+	$outputStream->streamF( 'DEBUG: GitHub API calls so far: %d', $countApiCalls );
 
 	$firstCommitRequest = new GetRequest( __DIR__ . '/firstCommit.php', '' );
 	$firstCommitRequest->addResponseCallbacks(
@@ -102,7 +108,7 @@ try
 			$matches = [];
 			if ( preg_match( '#^ERROR\: (.+)$#i', $body, $matches ) )
 			{
-				$outputStream->streamF( 'Got error while checking for first commit: %s', $matches[1] );
+				$outputStream->streamF( 'ERROR: Got error while checking for first commit: %s', $matches[1] );
 
 				return;
 			}
@@ -111,7 +117,7 @@ try
 
 			$countApiCalls += $apiCalls;
 			$outputStream->streamF( 'First commit date of %s is %s', $repo, $commitDate );
-			$outputStream->streamF( 'GitHub API calls so far: %d', $countApiCalls );
+			$outputStream->streamF( 'DEBUG: GitHub API calls so far: %d', $countApiCalls );
 
 			foreach ( $series as $color => $row )
 			{
@@ -131,7 +137,7 @@ try
 		}
 	);
 
-	foreach ( $repsitories as $repsitory )
+	foreach ( $repsitories as $index => $repsitory )
 	{
 		$queryVars = http_build_query(
 			[
@@ -153,12 +159,16 @@ try
 		$fastCgiClient->handleReadyResponses();
 	}
 
-	if ( $fastCgiClient->hasUnhandledResponses() )
+	while ( $fastCgiClient->hasUnhandledResponses() )
 	{
-		$fastCgiClient->waitForResponses();
+		$outputStream->stream( '[KEEPALIVE]' );
+		$fastCgiClient->handleReadyResponses();
 	}
 
-	$outputStream->streamF( '[DS]%s[/DS]', json_encode( array_values( $series ), JSON_UNESCAPED_SLASHES ) );
+	$jsonFile = sprintf( '%s/public/json/%s.json', dirname( __DIR__ ), $accessToken );
+	file_put_contents( $jsonFile, json_encode( array_values( $series ) ) );
+
+	$outputStream->streamF( 'RESULT: %s', $jsonFile );
 
 	$outputStream->endStream();
 }

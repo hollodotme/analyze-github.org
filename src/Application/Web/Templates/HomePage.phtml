@@ -6,6 +6,69 @@
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
 		  integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
 	<link rel="stylesheet" href="/css/main.css">
+	<meta name="description" content="Online analyzer for GitHub organizations using the GraphQL API">
+	<meta name="keywords" content="GitHub, Organization, Analyzer, GraphQL, FastCGI Client, PHP, OSS">
+	<meta name="HandheldFriendly" content="True"/>
+	<meta name="geo.region" content="DE-SN"/>
+	<meta name="geo.placename" content="Dresden"/>
+	<meta name="geo.position" content="51.052088;13.741672"/>
+	<meta name="ICBM" content="51.052088, 13.741672"/>
+	<meta name="twitter:site" content="@hollodotme">
+	<meta name="twitter:creator" content="@hollodotme">
+	<script type="application/ld+json">
+		{
+			"@context": "http://schema.org",
+			"@type": "Person",
+			"name": "GitHub Organization Analyzer",
+			"image": "https://analyze-github.org/img/chart.png",
+			"url": "https://analyze-github.org"
+		}
+	</script>
+	<meta property="article:author" content="https://github.com/hollodotme"/>
+	<meta property="article:publisher" content="https://github.com/hollodotme"/>
+
+	<link rel="apple-touch-icon" sizes="57x57" href="/favicon/apple-icon-57x57.png">
+	<link rel="apple-touch-icon" sizes="60x60" href="/favicon/apple-icon-60x60.png">
+	<link rel="apple-touch-icon" sizes="72x72" href="/favicon/apple-icon-72x72.png">
+	<link rel="apple-touch-icon" sizes="76x76" href="/favicon/apple-icon-76x76.png">
+	<link rel="apple-touch-icon" sizes="114x114" href="/favicon/apple-icon-114x114.png">
+	<link rel="apple-touch-icon" sizes="120x120" href="/favicon/apple-icon-120x120.png">
+	<link rel="apple-touch-icon" sizes="144x144" href="/favicon/apple-icon-144x144.png">
+	<link rel="apple-touch-icon" sizes="152x152" href="/favicon/apple-icon-152x152.png">
+	<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-icon-180x180.png">
+	<link rel="icon" type="image/png" sizes="192x192" href="/favicon/android-icon-192x192.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="96x96" href="/favicon/favicon-96x96.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+	<link rel="manifest" href="/favicon/manifest.json">
+	<meta name="msapplication-TileColor" content="#ffffff">
+	<meta name="msapplication-TileImage" content="/favicon/ms-icon-144x144.png">
+	<meta name="theme-color" content="#ffffff">
+
+	<link rel="canonical" href="https://analyze-github.org"/>
+	<meta name="referrer" content="origin"/>
+
+	<meta property="og:site_name" content="GitHub Organization Analyzer"/>
+	<meta property="og:type" content="article"/>
+	<meta property="og:title" content="Home | GitHub Organization Analyzer"/>
+	<meta property="og:description" content="Online analyzer for GitHub organizations using the GraphQL API"/>
+	<meta property="og:url" content="https://analyze-github.org"/>
+	<meta property="og:image" content="https://analyze-github.org/img/chart.png"/>
+	<meta property="article:published_time" content="<?= date( 'c' ) ?>"/>
+	<meta property="article:modified_time" content="<?= date( 'c' ) ?>"/>
+	<meta property="article:tag" content="GitHub"/>
+	<meta property="article:tag" content="Organization"/>
+	<meta property="article:tag" content="Analyzer"/>
+	<meta property="article:tag" content="PHP"/>
+	<meta property="article:tag" content="GraphQL"/>
+	<meta property="article:tag" content="OSS"/>
+	<meta name="twitter:card" content="summary_large_image"/>
+	<meta name="twitter:title" content="Home | GitHub Organization Analyzer"/>
+	<meta name="twitter:description" content="Online analyzer for GitHub organizations using the GraphQL API"/>
+	<meta name="twitter:url" content="https://analyze-github.org"/>
+	<meta name="twitter:image:src" content="https://analyze-github.org/img/chart.png"/>
+	<meta name="generator" content="Handmade with ❤️"/>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 	<title>GitHub Org Analyzer</title>
 </head>
 <body>
@@ -121,6 +184,9 @@
 			</div>
 			<div class="modal-body">
 				<div id="bubbleChart" style="height: 600px; width: 100%; margin: 0 auto"></div>
+				<div class="small text-muted text-center">
+					You can zoom into a date range by dragging an area on the chart.
+				</div>
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>

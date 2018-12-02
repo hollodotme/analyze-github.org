@@ -8,18 +8,27 @@ use hollodotme\FastCGI\Responses\Response;
 use hollodotme\FastCGI\SocketConnections\NetworkSocket;
 use hollodotme\GitHub\OrgAnalyzer\Application\Web\Responses\EventSourceStream;
 use Throwable;
+use function basename;
 use function dirname;
+use function error_reporting;
 use function http_build_query;
-use function strpos;
-use function substr;
+use function ignore_user_abort;
+use function ini_set;
+use function preg_match;
+use function set_time_limit;
+
+error_reporting( E_ALL );
+ini_set( 'display_errors', 'On' );
+ignore_user_abort( false );
+set_time_limit( 3600 );
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
 $fastCgiSocket = new NetworkSocket( 'php', 9100 );
 $fastCgiClient = new Client( $fastCgiSocket );
 
-$accessToken      = trim( (string)$_GET['personalAccessToken'] );
-$organizationName = trim( (string)$_GET['organizationName'] );
+$accessToken      = trim( (string)($argv[1] ?? $_GET['personalAccessToken']) );
+$organizationName = trim( (string)($argv[2] ?? $_GET['organizationName']) );
 
 try
 {
@@ -28,14 +37,14 @@ try
 
 	if ( !preg_match( '#^\w+$#', $accessToken ) )
 	{
-		$eventSourceStream->streamEvent( 'Personal access token is not valid.', 'validationError' );
+		$eventSourceStream->streamEvent( 'Personal access token is not valid.', 'error' );
 		$eventSourceStream->endStream();
 		exit();
 	}
 
 	if ( !preg_match( '#^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$#i', $organizationName ) )
 	{
-		$eventSourceStream->streamEvent( 'GitHub organization name is not valid.', 'validationError' );
+		$eventSourceStream->streamEvent( 'GitHub organization name is not valid.', 'error' );
 		$eventSourceStream->endStream();
 		exit();
 	}
@@ -48,36 +57,26 @@ try
 	$request->addPassThroughCallbacks(
 		function ( string $buffer ) use ( $eventSourceStream )
 		{
-			$beginDataSet = strpos( $buffer, '[DS]' );
-			$endDataSet   = strpos( $buffer, '[/DS]' );
-
-			if ( false !== $beginDataSet && false !== $endDataSet )
+			$matches = [];
+			if ( preg_match( "#^RESULT: (.+\.json)$#", $buffer, $matches ) )
 			{
-				$eventSourceStream->streamEvent( substr( $buffer, 0, $beginDataSet + 4 ) );
-				$eventSourceStream->streamEvent( '', 'beginDataSet' );
-				$eventSourceStream->streamEvent(
-					substr( $buffer, $beginDataSet + 4, $endDataSet - ($beginDataSet + 4) )
-				);
-				$eventSourceStream->streamEvent( '', 'endDataSet' );
-				$eventSourceStream->streamEvent( substr( $buffer, $endDataSet ) );
+				$eventSourceStream->streamEvent( basename( $matches[1] ), 'jsonResult' );
 
 				return;
 			}
 
-			if ( false !== $beginDataSet )
+			$matches = [];
+			if ( preg_match( '#^DEBUG: (.+)#', $buffer, $matches ) )
 			{
-				$eventSourceStream->streamEvent( substr( $buffer, 0, $beginDataSet + 4 ) );
-				$eventSourceStream->streamEvent( '', 'beginDataSet' );
-				$eventSourceStream->streamEvent( substr( $buffer, $beginDataSet + 4 ) );
+				$eventSourceStream->streamEvent( basename( $matches[1] ), 'debug' );
 
 				return;
 			}
 
-			if ( false !== $endDataSet )
+			$matches = [];
+			if ( preg_match( '#^ERROR: (.+)#', $buffer, $matches ) )
 			{
-				$eventSourceStream->streamEvent( substr( $buffer, 0, $endDataSet ) );
-				$eventSourceStream->streamEvent( '', 'endDataSet' );
-				$eventSourceStream->streamEvent( substr( $buffer, $endDataSet ) );
+				$eventSourceStream->streamEvent( basename( $matches[1] ), 'error' );
 
 				return;
 			}
@@ -94,7 +93,12 @@ try
 	);
 
 	$fastCgiClient->sendAsyncRequest( $request );
-	$fastCgiClient->waitForResponses();
+
+	while ( $fastCgiClient->hasUnhandledResponses() )
+	{
+		$eventSourceStream->streamEvent( '[KEEPALIVE]' );
+		$fastCgiClient->handleReadyResponses();
+	}
 }
 catch ( Throwable $e )
 {

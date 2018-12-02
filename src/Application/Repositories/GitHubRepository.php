@@ -163,13 +163,13 @@ final class GitHubRepository
 
 			$data = $this->gitHubAdapter->executeQuery( $query );
 
-			$nodes      = (array)$data->repository->ref->target->history->nodes;
-			$jsonObject = end( $nodes );
-
-			if ( false === $jsonObject )
+			if ( null === $data->repository->ref )
 			{
 				throw new RuntimeException( 'Could not get commit nodes.' );
 			}
+
+			$nodes      = (array)$data->repository->ref->target->history->nodes;
+			$jsonObject = end( $nodes );
 
 			$firstCommit = CommitHistoryItem::fromJsonObject( $jsonObject );
 

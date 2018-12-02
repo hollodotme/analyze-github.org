@@ -48,7 +48,7 @@ final class RepositoryInfo
 		$info->lastTag         = $jsonObject->refs->nodes ? $jsonObject->refs->nodes[0]->name : 'N/A';
 		$info->primaryLanguage = $jsonObject->primaryLanguage->name ?? 'N/A';
 		$info->color           = $jsonObject->primaryLanguage->color ?? '#ff0000';
-		$info->countCommits    = (int)$jsonObject->ref->target->history->totalCount;
+		$info->countCommits    = (int)($jsonObject->ref->target->history->totalCount ?? 0);
 
 		return $info;
 	}

@@ -3,10 +3,6 @@
 namespace hollodotme\GitHub\OrgAnalyzer\Application\CGI\Responses;
 
 use hollodotme\GitHub\OrgAnalyzer\Exceptions\LogicException;
-use function fclose;
-use function fflush;
-use function fwrite;
-use function is_resource;
 use function ob_end_clean;
 use function ob_end_flush;
 use function ob_implicit_flush;
@@ -14,20 +10,8 @@ use const PHP_EOL;
 
 final class OutputStream
 {
-	/** @var false|resource */
-	private $resource;
-
-	/** @var string */
-	private $target;
-
-	/** @var string */
-	private $mode;
-
-	public function __construct( string $target = 'php://output', string $mode = 'wb' )
-	{
-		$this->target = $target;
-		$this->mode   = $mode;
-	}
+	/** @var bool */
+	private $active = false;
 
 	/**
 	 * @param bool $flush
@@ -36,28 +20,22 @@ final class OutputStream
 	 */
 	public function beginStream( bool $flush = true ) : void
 	{
-		$this->resource = fopen( $this->target, $this->mode );
-
-		if ( false === $this->resource )
-		{
-			return;
-		}
+		$this->active = true;
 
 		$this->guardStreamIsActive();
 
 		if ( $flush )
 		{
-			fflush( $this->resource );
 			@ob_end_flush();
 			@ob_end_clean();
-			@ob_implicit_flush( 1 );
-			flush();
 		}
+
+		@ob_implicit_flush( 1 );
 	}
 
 	public function isActive() : bool
 	{
-		return is_resource( $this->resource ) && 'stream' === get_resource_type( $this->resource );
+		return $this->active;
 	}
 
 	/**
@@ -69,18 +47,10 @@ final class OutputStream
 	{
 		$this->guardStreamIsActive();
 
-		if ( false === $this->resource )
-		{
-			return;
-		}
-
 		foreach ( explode( PHP_EOL, $data ) as $line )
 		{
-			fwrite( $this->resource, $line . PHP_EOL );
+			echo $line, PHP_EOL;
 		}
-
-		fflush( $this->resource );
-		flush();
 	}
 
 	/**
@@ -125,12 +95,6 @@ final class OutputStream
 	{
 		$this->guardStreamIsActive();
 
-		if ( false !== $this->resource )
-		{
-			fflush( $this->resource );
-			fclose( $this->resource );
-			flush();
-			@ob_implicit_flush( 0 );
-		}
+		@ob_implicit_flush( 0 );
 	}
 }

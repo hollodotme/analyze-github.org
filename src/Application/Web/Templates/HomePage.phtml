@@ -154,7 +154,14 @@
 				<input type="text" name="organizationName" class="form-control" id="organizationName"
 					   placeholder="Enter organization name">
 			</div>
-			<button type="submit" class="btn btn-primary" id="analyzeBtn">ANALYZE</button>
+			<div class="row">
+				<div class="col">
+					<button type="submit" class="btn btn-primary" id="analyzeBtn">ANALYZE</button>
+				</div>
+				<div class="col text-right">
+					<button type="button" class="btn btn-danger" id="stopBtn" disabled>STOP</button>
+				</div>
+			</div>
 		</form>
 
 		<div class="text-center" id="waitImage" style="display: none;">
@@ -217,54 +224,64 @@
         const form = $('#analyzeForm');
         const logOutput = $('#eventSourceOutput');
         const analyzeBtn = $('#analyzeBtn');
+        const stopBtn = $('#stopBtn');
         const waitImage = $('#waitImage');
-        let collectDataSet = false;
-        let dataSetString = '';
+
         form.on('submit', function (e) {
             e.preventDefault();
             const eventSourceUrl = form.data('eventsource-url') + '?' + form.serialize();
-            console.log(eventSourceUrl);
             if (!!window.EventSource) {
                 logOutput.text('');
                 let source = new EventSource(eventSourceUrl);
 
-                source.addEventListener('message', function (e) {
-                    if (collectDataSet) {
-                        dataSetString += e.data;
-                        console.log('Dataset Collected!');
-                        return;
-                    }
+                stopBtn.off().click(function (e) {
+                    e.preventDefault();
+                    source.close();
+                    waitImage.hide();
+                    analyzeBtn.prop('disabled', false);
+                    stopBtn.prop('disabled', true);
+                    logOutput.append('<div class="text-danger">Analysis stopped.</div>');
+                    logOutput.scrollTop(99999999);
+                });
 
+                source.addEventListener('message', function (e) {
                     // No output when only keeping alive
                     if (e.data === '[KEEPALIVE]') {
                         return;
                     }
 
-                    logOutput.append('<div>' + e.data + '</div>');
+                    logOutput.append('<div class="text-success">' + e.data + '</div>');
                     logOutput.scrollTop(99999999);
                 }, false);
 
-                source.addEventListener('beginDataSet', function () {
-                    logOutput.append("DataSet started.\n");
-                    collectDataSet = true;
+                source.addEventListener('debug', function (e) {
+                    logOutput.append('<div class="text-warning">' + e.data + '</div>');
+                    logOutput.scrollTop(99999999);
                 }, false);
 
-                source.addEventListener('endDataSet', function () {
-                    logOutput.append("DataSet ended.\n");
-                    collectDataSet = false;
-                    let series = JSON.parse(dataSetString);
-                    $(series).each(function (i) {
-                        $(this.data).each(function (j) {
-                            series[i].data[j].x = Date.parse(this.x);
-                        });
-                    });
-                    console.dir(series);
-                    dataSetString = '';
-                    $.drawBubbleChart(series);
+                source.addEventListener('jsonResult', function (e) {
+                    logOutput.append("Fetching result: " + e.data + "\n");
+                    fetch('/results.php?resultType=repositories&' + form.serialize())
+                        .then(function (response) {
+                            if (!response.ok) {
+                                throw new Error('Result not found.');
+                            }
+                            return response.json();
+                        })
+                        .then(function (series) {
+                            $(series).each(function (i) {
+                                $(this.data).each(function (j) {
+                                    series[i].data[j].x = Date.parse(this.x);
+                                });
+                            });
+                            console.dir(series);
+                            $.drawBubbleChart(series);
+                        })
+                        .catch(error => console.error('Error:', error));
                 }, false);
 
-                source.addEventListener('validationError', function (e) {
-                    logOutput.append('<div style="color: #ff0000;">' + e.data + '</div>');
+                source.addEventListener('error', function (e) {
+                    logOutput.append('<div class="text-danger">' + e.data + '</div>');
                     logOutput.scrollTop(99999999);
                 }, false);
 
@@ -276,6 +293,7 @@
                     logOutput.text('');
                     console.log('Event Source opened.');
                     analyzeBtn.prop('disabled', true);
+                    stopBtn.prop('disabled', false);
                     waitImage.show();
                 }, false);
 
@@ -284,6 +302,7 @@
                     logOutput.append("Stream ended.\n");
                     logOutput.scrollTop(99999999);
                     analyzeBtn.prop('disabled', false);
+                    stopBtn.prop('disabled', true);
                     waitImage.hide();
                     console.log('Event Source closed.');
                 }, false);

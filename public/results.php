@@ -14,7 +14,10 @@ if ( !file_exists( $filePath ) )
 
 header( 'Content-Type: application/json; charset=utf-8', true, 200 );
 $handle = fopen( $filePath, 'rb' );
-fpassthru( $handle );
-fclose( $handle );
+if ( false !== $handle )
+{
+	fpassthru( $handle );
+	fclose( $handle );
+}
 
 @unlink( $filePath );

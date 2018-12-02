@@ -2,7 +2,7 @@
 
 Contributions are **welcome** and will be fully **credited**.
 
-We accept contributions via pull requests on [GitHub](https://github.com/hollodotme/github-org-analyzer).
+We accept contributions via pull requests on [GitHub](https://github.com/hollodotme/analyze-github.org).
 
 ## Pull Requests
 

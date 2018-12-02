@@ -29,8 +29,18 @@ ini_set( 'display_errors', 'On' );
 
 require __DIR__ . '/../vendor/autoload.php';
 
-$accessToken      = $_GET['personalAccessToken'] ?? $argv[1];
-$organizationName = $_GET['organizationName'] ?? $argv[2];
+if ( 'cli' === PHP_SAPI )
+{
+	$accessToken      = trim( (string)$argv[1] );
+	$organizationName = trim( (string)$argv[2] );
+	$useCommitDate    = (bool)($argv[3] ?? false);
+}
+else
+{
+	$accessToken      = trim( (string)$_GET['personalAccessToken'] );
+	$organizationName = trim( (string)$_GET['organizationName'] );
+	$useCommitDate    = (bool)($_GET['useCommitDate'] ?? false);
+}
 
 $gitHubConfig = new GitHubConfig(
 	[
@@ -100,72 +110,75 @@ try
 
 	$outputStream->streamF( 'DEBUG: GitHub API calls so far: %d', $countApiCalls );
 
-	$firstCommitRequest = new GetRequest( __DIR__ . '/firstCommit.php', '' );
-	$firstCommitRequest->addResponseCallbacks(
-		function ( ProvidesResponseData $response ) use ( &$countApiCalls, &$series, $outputStream )
-		{
-			$body    = trim( $response->getBody() );
-			$matches = [];
-			if ( preg_match( '#^ERROR\: (.+)$#i', $body, $matches ) )
+	if ( $useCommitDate )
+	{
+		$firstCommitRequest = new GetRequest( __DIR__ . '/firstCommit.php', '' );
+		$firstCommitRequest->addResponseCallbacks(
+			function ( ProvidesResponseData $response ) use ( &$countApiCalls, &$series, $outputStream )
 			{
-				$outputStream->streamF( 'ERROR: Got error while checking for first commit: %s', $matches[1] );
-
-				return;
-			}
-
-			[$apiCalls, $repo, $commitDate, $commitUrl] = explode( '|', $body );
-
-			$countApiCalls += $apiCalls;
-			$outputStream->streamF( 'First commit date of %s is %s', $repo, $commitDate );
-			$outputStream->streamF( 'DEBUG: GitHub API calls so far: %d', $countApiCalls );
-
-			foreach ( $series as $color => $row )
-			{
-				foreach ( $row['data'] as $index => $data )
+				$body    = trim( $response->getBody() );
+				$matches = [];
+				if ( preg_match( '#^ERROR\: (.+)$#i', $body, $matches ) )
 				{
-					if ( $data['name'] === $repo )
+					$outputStream->streamF( 'ERROR: Got error while checking for first commit: %s', $matches[1] );
+
+					return;
+				}
+
+				[$apiCalls, $repo, $commitDate, $commitUrl] = explode( '|', $body );
+
+				$countApiCalls += $apiCalls;
+				$outputStream->streamF( 'First commit date of %s is %s', $repo, $commitDate );
+				$outputStream->streamF( 'DEBUG: GitHub API calls so far: %d', $countApiCalls );
+
+				foreach ( $series as $color => $row )
+				{
+					foreach ( $row['data'] as $index => $data )
 					{
-						$series[ $color ]['data'][ $index ]['x']         = $commitDate;
-						$series[ $color ]['data'][ $index ]['commitUrl'] = $commitUrl;
-						$series[ $color ]['data'][ $index ]['createdAt'] = (new DateTimeImmutable(
-							$commitDate
-						))->format( 'Y-m-d' );
-						break;
+						if ( $data['name'] === $repo )
+						{
+							$series[ $color ]['data'][ $index ]['x']         = $commitDate;
+							$series[ $color ]['data'][ $index ]['commitUrl'] = $commitUrl;
+							$series[ $color ]['data'][ $index ]['createdAt'] = (new DateTimeImmutable(
+								$commitDate
+							))->format( 'Y-m-d' );
+							break;
+						}
 					}
 				}
 			}
-		}
-	);
-
-	foreach ( $repsitories as $index => $repsitory )
-	{
-		$queryVars = http_build_query(
-			[
-				'personalAccessToken' => $accessToken,
-				'organizationName'    => $organizationName,
-				'repository'          => $repsitory,
-			]
 		);
-		$firstCommitRequest->setCustomVar( 'QUERY_STRING', $queryVars );
 
-		for ( $i = 0; $i < random_int( 1, 10 ) * 10; $i++ )
+		foreach ( $repsitories as $index => $repsitory )
+		{
+			$queryVars = http_build_query(
+				[
+					'personalAccessToken' => $accessToken,
+					'organizationName'    => $organizationName,
+					'repository'          => $repsitory,
+				]
+			);
+			$firstCommitRequest->setCustomVar( 'QUERY_STRING', $queryVars );
+
+			for ( $i = 0; $i < random_int( 1, 10 ) * 10; $i++ )
+			{
+				$outputStream->stream( '[KEEPALIVE]' );
+				usleep( 100000 );
+			}
+
+			$fastCgiClient->sendAsyncRequest( $firstCommitRequest );
+
+			$fastCgiClient->handleReadyResponses();
+		}
+
+		while ( $fastCgiClient->hasUnhandledResponses() )
 		{
 			$outputStream->stream( '[KEEPALIVE]' );
-			usleep( 100000 );
+			$fastCgiClient->handleReadyResponses();
 		}
-
-		$fastCgiClient->sendAsyncRequest( $firstCommitRequest );
-
-		$fastCgiClient->handleReadyResponses();
 	}
 
-	while ( $fastCgiClient->hasUnhandledResponses() )
-	{
-		$outputStream->stream( '[KEEPALIVE]' );
-		$fastCgiClient->handleReadyResponses();
-	}
-
-	$jsonFile = sprintf( '%s/public/json/%s.json', dirname( __DIR__ ), $accessToken );
+	$jsonFile = sprintf( '%s/results/repositories/%s.json', dirname( __DIR__ ), $accessToken );
 	file_put_contents( $jsonFile, json_encode( array_values( $series ) ) );
 
 	$outputStream->streamF( 'RESULT: %s', $jsonFile );

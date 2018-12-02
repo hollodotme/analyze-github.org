@@ -72,11 +72,20 @@
 				<input type="text" name="organizationName" class="form-control" id="organizationName"
 					   placeholder="Enter organization name">
 			</div>
-			<div class="row">
-				<div class="col">
+			<div class="row align-items-center">
+				<div class="col-2">
 					<button type="submit" class="btn btn-primary" id="analyzeBtn">ANALYZE</button>
 				</div>
-				<div class="col text-right">
+				<div class="col">
+					<div class="form-check form-check-inline">
+						<input class="form-check-input" type="checkbox" id="useCommitDate" name="useCommitDate"
+							   value="On">
+						<label class="form-check-label" for="useCommitDate">Commit-based analysis</label>
+						&nbsp;
+						<small class="form-text text-muted">(Way slower, but more accurate.)</small>
+					</div>
+				</div>
+				<div class="col-2 text-right">
 					<button type="button" class="btn btn-danger" id="stopBtn" disabled>STOP</button>
 				</div>
 			</div>

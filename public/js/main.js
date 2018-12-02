@@ -8,6 +8,7 @@ $(document).ready(function () {
     form.on('submit', function (e) {
         e.preventDefault();
         const eventSourceUrl = form.data('eventsource-url') + '?' + form.serialize();
+        console.log(eventSourceUrl);
         if (!!window.EventSource) {
             logOutput.text('');
             let source = new EventSource(eventSourceUrl);
@@ -112,7 +113,7 @@ $.drawBubbleChart = function (dataSet) {
                 enabled: true
             },
             title: {
-                text: 'Age, size and language analysis'
+                text: 'Age, commit count, disk size and language analysis'
             },
             xAxis: {
                 gridLineWidth: 1,

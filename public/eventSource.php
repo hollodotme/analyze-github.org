@@ -16,6 +16,7 @@ use function ignore_user_abort;
 use function ini_set;
 use function preg_match;
 use function set_time_limit;
+use const PHP_SAPI;
 
 error_reporting( E_ALL );
 ini_set( 'display_errors', 'On' );
@@ -27,8 +28,18 @@ require_once __DIR__ . '/../vendor/autoload.php';
 $fastCgiSocket = new NetworkSocket( 'php', 9100 );
 $fastCgiClient = new Client( $fastCgiSocket );
 
-$accessToken      = trim( (string)($argv[1] ?? $_GET['personalAccessToken']) );
-$organizationName = trim( (string)($argv[2] ?? $_GET['organizationName']) );
+if ( 'cli' === PHP_SAPI )
+{
+	$accessToken      = trim( (string)$argv[1] );
+	$organizationName = trim( (string)$argv[2] );
+	$useCommitDate    = (bool)($argv[3] ?? false);
+}
+else
+{
+	$accessToken      = trim( (string)$_GET['personalAccessToken'] );
+	$organizationName = trim( (string)$_GET['organizationName'] );
+	$useCommitDate    = (bool)($_GET['useCommitDate'] ?? false);
+}
 
 try
 {
@@ -49,8 +60,14 @@ try
 		exit();
 	}
 
-	$queryVars = http_build_query( ['personalAccessToken' => $accessToken, 'organizationName' => $organizationName] );
-	$filePath  = dirname( __DIR__ ) . '/cgi/index.php';
+	$queryVars = http_build_query(
+		[
+			'personalAccessToken' => $accessToken,
+			'organizationName'    => $organizationName,
+			'useCommitDate'       => $useCommitDate,
+		]
+	);
+	$filePath  = dirname( __DIR__ ) . '/cgi/repositories.php';
 	$request   = new GetRequest( $filePath, '' );
 	$request->setCustomVar( 'QUERY_STRING', $queryVars );
 
@@ -87,7 +104,7 @@ try
 	$request->addResponseCallbacks(
 		function ( Response $response ) use ( $eventSourceStream )
 		{
-			$eventSourceStream->streamEvent( 'Duration: ' . $response->getDuration() );
+			$eventSourceStream->streamEvent( 'Duration: ' . $response->getDuration(), 'debug' );
 			$eventSourceStream->endStream();
 		}
 	);

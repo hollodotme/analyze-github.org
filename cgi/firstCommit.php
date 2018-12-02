@@ -17,9 +17,18 @@ ini_set( 'display_errors', 'On' );
 
 require __DIR__ . '/../vendor/autoload.php';
 
-$accessToken      = $_GET['personalAccessToken'];
-$organizationName = $_GET['organizationName'];
-$repository       = $_GET['repository'];
+if ( 'cli' === PHP_SAPI )
+{
+	$accessToken      = trim( (string)$argv[1] );
+	$organizationName = trim( (string)$argv[2] );
+	$repository       = trim( (string)$argv[3] );
+}
+else
+{
+	$accessToken      = trim( (string)$_GET['personalAccessToken'] );
+	$organizationName = trim( (string)$_GET['organizationName'] );
+	$repository       = trim( (string)$_GET['repository'] );
+}
 
 $gitHubConfig = new GitHubConfig(
 	[

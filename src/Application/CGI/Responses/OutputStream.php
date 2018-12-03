@@ -15,14 +15,13 @@ final class OutputStream
 
 	/**
 	 * @param bool $flush
-	 *
-	 * @throws LogicException
 	 */
 	public function beginStream( bool $flush = true ) : void
 	{
 		$this->active = true;
 
-		$this->guardStreamIsActive();
+		header_remove();
+		header( 'Content-Type: text/plain; charset=utf-8', true );
 
 		if ( $flush )
 		{
@@ -31,6 +30,8 @@ final class OutputStream
 		}
 
 		@ob_implicit_flush( 1 );
+
+		echo PHP_EOL;
 	}
 
 	public function isActive() : bool
@@ -88,12 +89,9 @@ final class OutputStream
 		}
 	}
 
-	/**
-	 * @throws LogicException
-	 */
 	public function endStream() : void
 	{
-		$this->guardStreamIsActive();
+		$this->active = false;
 
 		@ob_implicit_flush( 0 );
 	}

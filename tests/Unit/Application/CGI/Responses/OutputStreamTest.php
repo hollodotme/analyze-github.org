@@ -5,19 +5,21 @@ namespace hollodotme\GitHub\OrgAnalyzer\Tests\Unit\Application\CGI\Responses;
 use hollodotme\GitHub\OrgAnalyzer\Application\CGI\Responses\OutputStream;
 use hollodotme\GitHub\OrgAnalyzer\Exceptions\LogicException;
 use PHPUnit\Framework\TestCase;
+use const PHP_EOL;
 
 final class OutputStreamTest extends TestCase
 {
 	/**
-	 * @throws LogicException
 	 * @throws \PHPUnit\Framework\ExpectationFailedException
 	 * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
+	 * @runInSeparateProcess
 	 */
 	public function testCanBeginStream() : void
 	{
-		$stream = new OutputStream( 'php://memory' );
+		$stream = new OutputStream();
 
 		$this->assertFalse( $stream->isActive() );
+		$this->expectOutputString( PHP_EOL );
 
 		$stream->beginStream( false );
 
@@ -25,16 +27,22 @@ final class OutputStreamTest extends TestCase
 	}
 
 	/**
-	 * @throws LogicException
+	 * @throws \PHPUnit\Framework\ExpectationFailedException
+	 * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
+	 * @runInSeparateProcess
 	 */
-	public function testEndingNonActiveStreamThrowsException() : void
+	public function testCanEndStream() : void
 	{
-		$stream = new OutputStream( 'php://memory' );
+		$stream = new OutputStream();
 
-		$this->expectException( LogicException::class );
-		$this->expectExceptionMessage( 'Output stream is not active.' );
+		$this->expectOutputString( PHP_EOL );
+		$stream->beginStream( false );
+
+		$this->assertTrue( $stream->isActive() );
 
 		$stream->endStream();
+
+		$this->assertFalse( $stream->isActive() );
 	}
 
 	/**
@@ -42,7 +50,7 @@ final class OutputStreamTest extends TestCase
 	 */
 	public function testStreamingOutputOnNonActiveStreamThrowsException() : void
 	{
-		$stream = new OutputStream( 'php://memory' );
+		$stream = new OutputStream();
 
 		$this->expectException( LogicException::class );
 		$this->expectExceptionMessage( 'Output stream is not active.' );
@@ -56,9 +64,9 @@ final class OutputStreamTest extends TestCase
 	 */
 	public function testCanStreamOutput() : void
 	{
-		$stream = new OutputStream( 'php://output' );
+		$stream = new OutputStream();
 
-		$expectedOutput = "Unit\nTest\nUnit\nTest\nUnitTest\n";
+		$expectedOutput = "\nUnit\nTest\nUnit\nTest\nUnitTest\n";
 
 		$this->expectOutputString( $expectedOutput );
 

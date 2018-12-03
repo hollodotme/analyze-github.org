@@ -9,6 +9,7 @@ use hollodotme\GitHub\OrgAnalyzer\Application\Repositories\GitHub\RepositoryInfo
 use hollodotme\GitHub\OrgAnalyzer\Exceptions\RuntimeException;
 use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Adapters\GitHub\Exceptions\GitHubApiRequestFailed;
 use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Interfaces\ProvidesGitHubData;
+use stdClass;
 
 final class GitHubRepository
 {
@@ -92,6 +93,9 @@ final class GitHubRepository
 
 			$data = $this->gitHubAdapter->executeQuery( $query );
 
+			$this->guardIsOrganization( $data );
+			$this->guardOrganizationHasRepositories( $data );
+
 			foreach ( $data->organization->repositories->nodes as $repositoryInfo )
 			{
 				yield RepositoryInfo::fromJsonObject( $repositoryInfo );
@@ -105,6 +109,34 @@ final class GitHubRepository
 
 		/** @noinspection SuspiciousReturnInspection */
 		return $countApiCalls;
+	}
+
+	/**
+	 * @param stdClass $data
+	 *
+	 * @throws RuntimeException
+	 */
+	private function guardIsOrganization( stdClass $data ) : void
+	{
+		if ( null === $data->organization )
+		{
+			throw new RuntimeException(
+				sprintf( '"%s" is not a valid GitHub organization.', $this->orgConfig->getOrganizationName() )
+			);
+		}
+	}
+
+	/**
+	 * @param stdClass $data
+	 *
+	 * @throws RuntimeException
+	 */
+	private function guardOrganizationHasRepositories( stdClass $data ) : void
+	{
+		if ( [] === $data->organization->repositories->nodes )
+		{
+			throw new RuntimeException( 'This organization has no repositories.' );
+		}
 	}
 
 	/**

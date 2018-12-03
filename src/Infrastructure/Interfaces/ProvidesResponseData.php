@@ -8,5 +8,9 @@ interface ProvidesResponseData
 
 	public function getContentType() : string;
 
+	public function hasHeader( string $header ) : bool;
+
+	public function getHeader( string $header ) : string;
+
 	public function getBody() : string;
 }

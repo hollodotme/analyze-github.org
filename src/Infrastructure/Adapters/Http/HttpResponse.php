@@ -4,6 +4,16 @@ namespace hollodotme\GitHub\OrgAnalyzer\Infrastructure\Adapters\Http;
 
 use hollodotme\GitHub\OrgAnalyzer\Exceptions\RuntimeException;
 use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Interfaces\ProvidesResponseData;
+use function error_get_last;
+use function explode;
+use function get_resource_type;
+use function is_resource;
+use function stream_get_contents;
+use function stream_get_meta_data;
+use function strpos;
+use function strtolower;
+use function substr;
+use function trim;
 
 final class HttpResponse implements ProvidesResponseData
 {
@@ -33,7 +43,7 @@ final class HttpResponse implements ProvidesResponseData
 	 */
 	private function guardStreamIsValid( $stream ) : void
 	{
-		if ( !\is_resource( $stream ) || 'stream' !== get_resource_type( $stream ) )
+		if ( !is_resource( $stream ) || 'stream' !== get_resource_type( $stream ) )
 		{
 			$error = error_get_last();
 
@@ -50,18 +60,20 @@ final class HttpResponse implements ProvidesResponseData
 		/** @var iterable $wrapperData */
 		foreach ( $wrapperData as $header )
 		{
-			if ( strpos( $header, ':' ) === false )
+			if ( false === strpos( $header, ':' ) )
 			{
 				if ( 0 === strpos( $header, 'HTTP' ) )
 				{
 					$this->headers['status'] = substr( $header, 9, 3 );
 				}
+
+				continue;
 			}
-			else
-			{
-				[$name, $value] = explode( ': ', $header );
-				$this->headers[ strtolower( $name ) ] = trim( $value );
-			}
+
+			$headerParts = explode( ': ', $header );
+			$name        = strtolower( $headerParts[0] );
+
+			$this->headers[ $name ] = trim( $headerParts[1] ?? '' );
 		}
 	}
 
@@ -73,6 +85,16 @@ final class HttpResponse implements ProvidesResponseData
 	public function getContentType() : string
 	{
 		return $this->headers['content-type'] ?? '';
+	}
+
+	public function hasHeader( string $header ) : bool
+	{
+		return isset( $this->headers[ strtolower( $header ) ] );
+	}
+
+	public function getHeader( string $header ) : string
+	{
+		return $this->headers[ strtolower( $header ) ] ?? '';
 	}
 
 	public function getBody() : string

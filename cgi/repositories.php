@@ -62,10 +62,10 @@ $gitHubAdapter    = new GitHubAdapter( $gitHubConfig, new HttpAdapter() );
 $gitHubRepository = new GitHubRepository( $orgConfig, $gitHubAdapter );
 $outputStream     = new OutputStream();
 
+$outputStream->beginStream();
+
 try
 {
-	$outputStream->beginStream();
-
 	$repositoryInfos = $gitHubRepository->getRepositoryInfos();
 
 	$series      = [];
@@ -182,10 +182,13 @@ try
 	file_put_contents( $jsonFile, json_encode( array_values( $series ) ) );
 
 	$outputStream->streamF( 'RESULT: %s', $jsonFile );
-
-	$outputStream->endStream();
 }
 catch ( Throwable $e )
 {
-	die( $e->getMessage() );
+	/** @noinspection PhpUnhandledExceptionInspection */
+	$outputStream->streamF( "\nERROR: %s", $e->getMessage() );
+}
+finally
+{
+	$outputStream->endStream();
 }

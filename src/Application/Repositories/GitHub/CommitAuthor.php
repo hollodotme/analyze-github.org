@@ -22,7 +22,7 @@ final class CommitAuthor
 	public static function fromJsonObject( stdClass $jsonObject ) : self
 	{
 		$author            = new self();
-		$author->id        = $jsonObject->user->id ?? '';
+		$author->id        = $jsonObject->user->id ?? $jsonObject->name;
 		$author->name      = $jsonObject->name;
 		$author->avatarUrl = $jsonObject->avatarUrl;
 

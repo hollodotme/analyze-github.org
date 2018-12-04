@@ -46,7 +46,7 @@ final class GitHubRepository
 			        hasNextPage
 			      }
 			      nodes {
-			        refs(refPrefix: "refs/tags/",last: 1) {
+			        refs(refPrefix: "refs/tags/",first: 1, orderBy: {field: TAG_COMMIT_DATE, direction:DESC}) {
 			          nodes {
 			            name
 			          }
@@ -54,7 +54,7 @@ final class GitHubRepository
 			        ref(qualifiedName: "master") {
 			          target {
 			            ... on Commit {
-			              history(since: "2010-01-01T00:00:00") {
+			              history {
 			                totalCount
 			              }
 			            }
@@ -62,6 +62,7 @@ final class GitHubRepository
 			        }
 			        id
 			        name
+			        nameWithOwner
 			        diskUsage
 			        createdAt
 			        primaryLanguage {

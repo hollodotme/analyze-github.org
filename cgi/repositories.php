@@ -76,9 +76,8 @@ try
 		$repsitories[] = $repositoryInfo->getName();
 
 		$outputStream->streamF(
-			'Fetched repository information for "%s/%s"',
-			$orgConfig->getOrganizationName(),
-			$repositoryInfo->getName()
+			'Fetched repository information for "%s"',
+			$repositoryInfo->getNameWithOwner()
 		);
 
 		$dateCreated = $repositoryInfo->getCreatedAt();

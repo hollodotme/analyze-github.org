@@ -15,6 +15,9 @@ final class RepositoryInfo
 	private $name;
 
 	/** @var string */
+	private $nameWithOwner;
+
+	/** @var string */
 	private $lastTag;
 
 	/** @var int */
@@ -43,6 +46,7 @@ final class RepositoryInfo
 		$info                  = new self();
 		$info->id              = $jsonObject->id;
 		$info->name            = $jsonObject->name;
+		$info->nameWithOwner   = $jsonObject->nameWithOwner;
 		$info->createdAt       = new DateTimeImmutable( $jsonObject->createdAt );
 		$info->diskUsage       = (int)$jsonObject->diskUsage;
 		$info->lastTag         = $jsonObject->refs->nodes ? $jsonObject->refs->nodes[0]->name : 'N/A';
@@ -61,6 +65,11 @@ final class RepositoryInfo
 	public function getName() : string
 	{
 		return $this->name;
+	}
+
+	public function getNameWithOwner() : string
+	{
+		return $this->nameWithOwner;
 	}
 
 	public function getLastTag() : string

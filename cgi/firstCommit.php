@@ -49,16 +49,22 @@ $outputStream     = new OutputStream();
 
 try
 {
-	$apiCalls    = 0;
-	$firstCommit = $gitHubRepository->getFirstCommitDate( $repository, $apiCalls );
+	$firstCommit = null;
+	$history     = $gitHubRepository->getCommitHistory( $repository );
+
+	foreach ( $history as $commitHistoryItem )
+	{
+		$firstCommit = $commitHistoryItem;
+	}
+
+	$apiCalls = (int)$history->getReturn();
 
 	$outputStream->beginStream();
 	$outputStream->streamF(
-		'%d|%s|%s|%s',
+		'%d|%s|%s',
 		$apiCalls,
 		$repository,
-		$firstCommit->getCommitDate()->format( 'c' ),
-		$firstCommit->getCommitUrl()
+		$firstCommit->getCommitDate()->format( 'c' )
 	);
 	$outputStream->endStream();
 }

@@ -124,7 +124,7 @@ try
 					return;
 				}
 
-				[$apiCalls, $repo, $commitDate, $commitUrl] = explode( '|', $body );
+				[$apiCalls, $repo, $commitDate] = explode( '|', $body );
 
 				$countApiCalls += $apiCalls;
 				$outputStream->streamF( 'First commit date of %s is %s', $repo, $commitDate );
@@ -137,7 +137,6 @@ try
 						if ( $data['name'] === $repo )
 						{
 							$series[ $color ]['data'][ $index ]['x']         = $commitDate;
-							$series[ $color ]['data'][ $index ]['commitUrl'] = $commitUrl;
 							$series[ $color ]['data'][ $index ]['createdAt'] = (new DateTimeImmutable(
 								$commitDate
 							))->format( 'Y-m-d' );

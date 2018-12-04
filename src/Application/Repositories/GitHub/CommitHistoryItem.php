@@ -8,11 +8,11 @@ use stdClass;
 
 final class CommitHistoryItem
 {
-	/** @var string */
-	private $commitUrl;
-
 	/** @var DateTimeInterface */
 	private $commitDate;
+
+	/** @var CommitAuthor */
+	private $commitAuthor;
 
 	/**
 	 * @param stdClass $jsonObject
@@ -22,20 +22,20 @@ final class CommitHistoryItem
 	 */
 	public static function fromJsonObject( stdClass $jsonObject ) : self
 	{
-		$item             = new self();
-		$item->commitUrl  = $jsonObject->commitUrl;
-		$item->commitDate = new DateTimeImmutable( $jsonObject->committedDate );
+		$item               = new self();
+		$item->commitDate   = new DateTimeImmutable( $jsonObject->committedDate );
+		$item->commitAuthor = CommitAuthor::fromJsonObject( $jsonObject->author );
 
 		return $item;
-	}
-
-	public function getCommitUrl() : string
-	{
-		return $this->commitUrl;
 	}
 
 	public function getCommitDate() : DateTimeInterface
 	{
 		return $this->commitDate;
+	}
+
+	public function getCommitAuthor() : CommitAuthor
+	{
+		return $this->commitAuthor;
 	}
 }

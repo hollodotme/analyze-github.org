@@ -142,14 +142,13 @@ final class GitHubRepository
 
 	/**
 	 * @param string $repository
-	 * @param int    $apiCalls
 	 *
 	 * @throws GitHubApiRequestFailed
 	 * @throws RuntimeException
 	 * @throws \Exception
-	 * @return CommitHistoryItem
+	 * @return Generator|CommitHistoryItem[]
 	 */
-	public function getFirstCommitDate( string $repository, int &$apiCalls ) : CommitHistoryItem
+	public function getCommitHistory( string $repository ) : Generator
 	{
 		$queryTemplate = '
 			{ 
@@ -163,8 +162,14 @@ final class GitHubRepository
 			              hasNextPage
 			            }
 			            nodes {
-			              commitUrl
 			              committedDate
+			              author {
+			                name
+			                avatarUrl
+			                user {
+			                  id
+			                }
+			              }
 			            }
 			          }
 			        }
@@ -176,7 +181,6 @@ final class GitHubRepository
 
 		$endCursor   = '';
 		$apiCalls    = 0;
-		$firstCommit = null;
 
 		do
 		{
@@ -188,6 +192,7 @@ final class GitHubRepository
 			);
 
 			$query = json_encode( ['query' => $graphQuery] );
+			$apiCalls++;
 
 			if ( false === $query )
 			{
@@ -201,17 +206,16 @@ final class GitHubRepository
 				throw new RuntimeException( 'Could not get commit nodes.' );
 			}
 
-			$nodes      = (array)$data->repository->ref->target->history->nodes;
-			$jsonObject = end( $nodes );
-
-			$firstCommit = CommitHistoryItem::fromJsonObject( $jsonObject );
+			foreach ( (array)$data->repository->ref->target->history->nodes as $commit )
+			{
+				yield CommitHistoryItem::fromJsonObject( $commit );
+			}
 
 			$endCursor = $data->repository->ref->target->history->pageInfo->endCursor;
-
-			$apiCalls++;
 		}
 		while ( $data->repository->ref->target->history->pageInfo->hasNextPage );
 
-		return $firstCommit;
+		/** @noinspection SuspiciousReturnInspection */
+		return $apiCalls;
 	}
 }

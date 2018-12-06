@@ -11,7 +11,7 @@
     }
   ],
   "require": {
-    "php": ">=7.2",
+    "php": ">=7.3",
     "ext-json": "*",
     "hollodotme/fast-cgi-client": "~2.4"
   },
@@ -42,7 +42,7 @@
         "only-dev": true
       },
       "phpstan": {
-        "url": "https://github.com/phpstan/phpstan/releases/download/0.10.5/phpstan.phar",
+        "url": "https://github.com/phpstan/phpstan/releases/download/0.10.6/phpstan.phar",
         "only-dev": true
       }
     }

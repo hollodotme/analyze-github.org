@@ -13,6 +13,7 @@
   "require": {
     "php": ">=7.3",
     "ext-json": "*",
+    "ext-redis": "*",
     "hollodotme/fast-cgi-client": "~2.4"
   },
   "autoload": {

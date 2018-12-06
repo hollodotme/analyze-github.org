@@ -6,7 +6,7 @@ services:
       context: .docker/php
       dockerfile: Dockerfile
     container_name: goa_php
-    restart: always
+    restart: "always"
     networks:
       - goa
     volumes:
@@ -17,14 +17,25 @@ services:
   redis:
     image: redis
     container_name: goa_redis
-    restart: always
+    restart: "always"
     networks:
       - goa
+
+  readis:
+    image: hollodotme/readis
+    container_name: goa_readis
+    restart: "on-failure"
+    networks:
+      - goa
+    volumes:
+      - .docker/readis:/code/config:ro
+    depends_on:
+      - redis
 
   nginx:
     image: nginx:latest
     container_name: goa_nginx
-    restart: always
+    restart: "always"
     networks:
       - goa
     ports:

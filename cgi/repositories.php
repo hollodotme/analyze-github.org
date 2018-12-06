@@ -12,6 +12,8 @@ use hollodotme\GitHub\OrgAnalyzer\Application\Configs\OrgConfig;
 use hollodotme\GitHub\OrgAnalyzer\Application\Repositories\GitHubRepository;
 use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Adapters\GitHub\GitHubAdapter;
 use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Adapters\Http\HttpAdapter;
+use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Adapters\Redis\RedisAdapter;
+use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Adapters\Redis\RedisConnection;
 use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Configs\GitHubConfig;
 use Throwable;
 use function array_values;
@@ -55,11 +57,10 @@ $orgConfig = new OrgConfig(
 	]
 );
 
-$fastCgiSocket = new NetworkSocket( 'php', 9100 );
-$fastCgiClient = new Client( $fastCgiSocket );
-
+$fastCgiClient    = new Client( new NetworkSocket( 'php', 9100 ) );
 $gitHubAdapter    = new GitHubAdapter( $gitHubConfig, new HttpAdapter() );
 $gitHubRepository = new GitHubRepository( $orgConfig, $gitHubAdapter );
+$redisAdapter     = new RedisAdapter( RedisConnection::fromConfigFile() );
 $outputStream     = new OutputStream();
 
 $outputStream->beginStream();
@@ -92,7 +93,7 @@ try
 			];
 		}
 
-		$series[ $color ]['data'][] = [
+		$dataSet = [
 			'x'               => $dateCreated->format( 'c' ),
 			'y'               => $repositoryInfo->getCountCommits(),
 			'z'               => $repositoryInfo->getDiskUsage(),
@@ -103,6 +104,13 @@ try
 			'primaryLanguage' => $repositoryInfo->getPrimaryLanguage(),
 			'countCommits'    => $repositoryInfo->getCountCommits(),
 		];
+
+		$redisAdapter->hMSet(
+			$redisAdapter->getKeyFromSegments( $accessToken, 'repo', $repositoryInfo->getNameWithOwner() ),
+			$dataSet
+		);
+
+		$series[ $color ]['data'][] = $dataSet;
 	}
 
 	$countApiCalls = $repositoryInfos->getReturn();

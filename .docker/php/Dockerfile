@@ -6,9 +6,6 @@ RUN apt-get update && apt-get install git libicu-dev g++ libzip-dev zlib1g-dev z
 RUN pecl install xdebug-2.7.0beta1
 # Install extensions
 RUN docker-php-ext-install zip
-# Install OPcache
-RUN docker-php-ext-configure opcache --enable-opcache \
-   && docker-php-ext-install opcache
 # Install redis extension
 RUN mkdir -p /usr/src/php/ext/redis \
    && curl -L https://github.com/phpredis/phpredis/archive/${PHPREDIS_VERSION}.tar.gz | tar xvz -C /usr/src/php/ext/redis --strip 1 \
@@ -20,7 +17,6 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
    && php composer-setup.php --install-dir=/bin --filename=composer \
    && php -r "unlink('composer-setup.php');"
 RUN apt-get autoremove --purge -y && apt-get clean -s
-COPY opcache.ini ${PHP_INI_DIR}/conf.d/opcache.ini
 COPY xdebug.ini ${PHP_INI_DIR}/conf.d/xdebug.ini
 COPY worker.pool.conf /usr/local/etc/php-fpm.d/worker.conf
 WORKDIR /repo

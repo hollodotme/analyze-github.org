@@ -1,8 +1,8 @@
 language: php
 
 php:
-  - 7.2
-  - 7.2snapshot
+  - 7.3
+  - 7.3snapshot
 
 git:
   depth: 5

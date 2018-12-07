@@ -3,12 +3,6 @@
 namespace hollodotme\GitHub\OrgAnalyzer\Application\Web\Responses;
 
 use hollodotme\GitHub\OrgAnalyzer\Exceptions\LogicException;
-use function fclose;
-use function fflush;
-use function fwrite;
-use function get_resource_type;
-use function is_resource;
-use const PHP_EOL;
 
 final class EventSourceStream
 {
@@ -19,20 +13,8 @@ final class EventSourceStream
 	/** @var int */
 	private $eventSequence = 0;
 
-	/** @var false|resource */
-	private $resource;
-
-	/** @var string */
-	private $target;
-
-	/** @var string */
-	private $mode;
-
-	public function __construct( string $target = 'php://output', string $mode = 'wb' )
-	{
-		$this->target = $target;
-		$this->mode   = $mode;
-	}
+	/** @var bool */
+	private $active = false;
 
 	/**
 	 * @param bool $flushBuffer
@@ -41,34 +23,27 @@ final class EventSourceStream
 	 */
 	public function beginStream( bool $flushBuffer = true ) : void
 	{
-		header( 'X-Accel-Buffering: no;' );
-		header( 'Cache-Control: no-cache;' );
-		header( 'Content-Type: text/event-stream; charset=utf-8' );
-
-		$this->resource = fopen( $this->target, $this->mode );
-
-		if ( false === $this->resource )
-		{
-			return;
-		}
-
-		$this->guardStreamIsActive();
+		$this->active = true;
 
 		if ( $flushBuffer )
 		{
-			fflush( $this->resource );
 			@ob_end_flush();
 			@ob_end_clean();
-			@ob_implicit_flush( 1 );
 			flush();
 		}
+
+		@ob_implicit_flush( 1 );
+
+		header( 'X-Accel-Buffering: no;' );
+		header( 'Cache-Control: no-cache;' );
+		header( 'Content-Type: text/event-stream; charset=utf-8' );
 
 		$this->streamEvent( '', self::BEGIN_OF_STREAM_EVENT );
 	}
 
 	public function isActive() : bool
 	{
-		return is_resource( $this->resource ) && 'stream' === get_resource_type( $this->resource );
+		return $this->active;
 	}
 
 	/**
@@ -81,31 +56,17 @@ final class EventSourceStream
 	{
 		$this->guardStreamIsActive();
 
-		if ( false === $this->resource )
+		$this->eventSequence++;
+
+		echo "id: {$this->eventSequence}\n";
+		echo (null !== $eventName) ? "event: {$eventName}\n" : '';
+
+		foreach ( explode( "\n", $data ) as $line )
 		{
-			return;
+			echo "data: {$line}\n";
 		}
 
-		$streamData = $data;
-
-		fwrite( $this->resource, 'id: ' . ++$this->eventSequence . PHP_EOL );
-		fwrite( $this->resource, (null !== $eventName) ? ('event: ' . $eventName . PHP_EOL) : '' );
-
-		if ( false === strpos( $streamData, PHP_EOL ) )
-		{
-			fwrite( $this->resource, 'data: ' . $streamData . PHP_EOL . PHP_EOL );
-			fflush( $this->resource );
-			flush();
-
-			return;
-		}
-
-		foreach ( explode( PHP_EOL, $streamData ) as $line )
-		{
-			fwrite( $this->resource, 'data: ' . $line . PHP_EOL );
-		}
-
-		fwrite( $this->resource, PHP_EOL );
+		echo "\n";
 	}
 
 	/**
@@ -128,12 +89,7 @@ final class EventSourceStream
 
 		$this->streamEvent( '', self::END_OF_STREAM_EVENT );
 
-		if ( false !== $this->resource )
-		{
-			fflush( $this->resource );
-			fclose( $this->resource );
-			flush();
-			@ob_implicit_flush( 0 );
-		}
+		flush();
+		@ob_implicit_flush( 0 );
 	}
 }

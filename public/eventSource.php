@@ -15,13 +15,11 @@ use function http_build_query;
 use function ignore_user_abort;
 use function ini_set;
 use function preg_match;
-use function set_time_limit;
 use const PHP_SAPI;
 
 error_reporting( E_ALL );
 ini_set( 'display_errors', 'On' );
 ignore_user_abort( false );
-set_time_limit( 3600 );
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
@@ -74,6 +72,12 @@ try
 	$request->addPassThroughCallbacks(
 		function ( string $buffer ) use ( $eventSourceStream )
 		{
+			$buffer = trim( $buffer );
+			if ( '' === $buffer )
+			{
+				return;
+			}
+
 			$matches = [];
 			if ( preg_match( "#^RESULT: (.+\.json)$#", $buffer, $matches ) )
 			{

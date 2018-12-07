@@ -15,6 +15,7 @@ use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Adapters\Http\HttpAdapter;
 use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Adapters\Redis\RedisAdapter;
 use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Adapters\Redis\RedisConnection;
 use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Configs\GitHubConfig;
+use SplQueue;
 use Throwable;
 use function array_values;
 use function dirname;
@@ -23,6 +24,7 @@ use function file_put_contents;
 use function http_build_query;
 use function ini_set;
 use function json_encode;
+use function memory_get_usage;
 use function random_int;
 use function usleep;
 
@@ -103,6 +105,7 @@ try
 			'createdAt'       => $dateCreated->format( 'Y-m-d' ),
 			'primaryLanguage' => $repositoryInfo->getPrimaryLanguage(),
 			'countCommits'    => $repositoryInfo->getCountCommits(),
+			'color'           => $color,
 		];
 
 		$redisAdapter->hMSet(
@@ -119,15 +122,38 @@ try
 
 	if ( $useCommitDate )
 	{
+		$queue = new SplQueue();
+
 		$firstCommitRequest = new GetRequest( __DIR__ . '/firstCommit.php', '' );
 		$firstCommitRequest->addResponseCallbacks(
-			function ( ProvidesResponseData $response ) use ( &$countApiCalls, &$series, $outputStream )
+			function ( ProvidesResponseData $response ) use (
+				&$countApiCalls,
+				&$series,
+				$outputStream,
+				$queue,
+				$fastCgiClient
+			)
 			{
+				$outputStream->streamF( 'DEBUG: Memory usage of %.2f MB', memory_get_usage( true ) / 1024 / 1024 );
+
 				$body    = trim( $response->getBody() );
 				$matches = [];
 				if ( preg_match( '#^ERROR\: (.+)$#i', $body, $matches ) )
 				{
 					$outputStream->streamF( 'ERROR: Got error while checking for first commit: %s', $matches[1] );
+
+					if ( !$queue->isEmpty() )
+					{
+						$limit = random_int( 1, 8 ) * 10;
+						for ( $j = 0; $j < $limit; $j++ )
+						{
+							$outputStream->stream( '[KEEPALIVE]' );
+							usleep( 100000 );
+						}
+
+						$fastCgiClient->sendAsyncRequest( $queue->dequeue() );
+						$outputStream->streamF( 'DEBUG: %d requests in queue', $queue->count() );
+					}
 
 					return;
 				}
@@ -152,6 +178,19 @@ try
 						}
 					}
 				}
+
+				if ( !$queue->isEmpty() )
+				{
+					$limit = random_int( 1, 8 ) * 10;
+					for ( $j = 0; $j < $limit; $j++ )
+					{
+						$outputStream->stream( '[KEEPALIVE]' );
+						usleep( 100000 );
+					}
+
+					$fastCgiClient->sendAsyncRequest( $queue->dequeue() );
+					$outputStream->streamF( 'DEBUG: %d requests in queue', $queue->count() );
+				}
 			}
 		);
 
@@ -164,17 +203,27 @@ try
 					'repository'          => $repsitory,
 				]
 			);
-			$firstCommitRequest->setCustomVar( 'QUERY_STRING', $queryVars );
 
-			for ( $i = 0; $i < random_int( 1, 10 ) * 10; $i++ )
+			$request = clone $firstCommitRequest;
+			$request->setCustomVar( 'QUERY_STRING', $queryVars );
+
+			$queue->enqueue( $request );
+		}
+
+		$outputStream->streamF( 'DEBUG: %d requests in queue', $queue->count() );
+
+		for ( $i = 0; $i < 5; $i++ )
+		{
+			$limit = random_int( 1, 8 ) * 10;
+			for ( $j = 0; $j < $limit; $j++ )
 			{
 				$outputStream->stream( '[KEEPALIVE]' );
 				usleep( 100000 );
 			}
 
-			$fastCgiClient->sendAsyncRequest( $firstCommitRequest );
+			$fastCgiClient->sendAsyncRequest( $queue->dequeue() );
 
-			$fastCgiClient->handleReadyResponses();
+			$outputStream->streamF( 'DEBUG: %d requests in queue', $queue->count() );
 		}
 
 		while ( $fastCgiClient->hasUnhandledResponses() )

@@ -7,6 +7,8 @@ use hollodotme\GitHub\OrgAnalyzer\Application\Configs\OrgConfig;
 use hollodotme\GitHub\OrgAnalyzer\Application\Repositories\GitHubRepository;
 use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Adapters\GitHub\GitHubAdapter;
 use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Adapters\Http\HttpAdapter;
+use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Adapters\Redis\RedisAdapter;
+use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Adapters\Redis\RedisConnection;
 use hollodotme\GitHub\OrgAnalyzer\Infrastructure\Configs\GitHubConfig;
 use Throwable;
 use function error_reporting;
@@ -45,6 +47,7 @@ $orgConfig = new OrgConfig(
 
 $gitHubAdapter    = new GitHubAdapter( $gitHubConfig, new HttpAdapter() );
 $gitHubRepository = new GitHubRepository( $orgConfig, $gitHubAdapter );
+$redisAdapter     = new RedisAdapter( RedisConnection::fromConfigFile() );
 $outputStream     = new OutputStream();
 
 try
@@ -56,6 +59,12 @@ try
 	{
 		$firstCommit = $commitHistoryItem;
 	}
+
+	$redisAdapter->hSet(
+		$redisAdapter->getKeyFromSegments( $accessToken, 'repo', "{$organizationName}/{$repository}" ),
+		'createdAt',
+		$firstCommit->getCommitDate()->format( 'c' )
+	);
 
 	$apiCalls = (int)$history->getReturn();
 
